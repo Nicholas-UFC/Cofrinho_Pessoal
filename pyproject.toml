@@ -1,0 +1,7 @@
+[project]
+name = "cofrinho-pessoal"
+version = "0.1.0"
+description = "Projetos para uso pessoal com um objetivo de ajudar a organizar os gastos."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
