@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.3
+    rev: v0.15.5
     hooks:
       - id: ruff
         args: [ --fix ]
@@ -10,5 +10,5 @@ repos:
     rev: 1.7.10
     hooks:
       - id: bandit
-        args: ["-x", "backend/.venv,backend/tests", "-ll"]
+        args: ["-c", "pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]

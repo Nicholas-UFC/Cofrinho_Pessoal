@@ -3,11 +3,11 @@ name = "cofrinho-pessoal"
 version = "0.1.0"
 description = "Projeto para uso pessoal com um objetivo de ajudar a organizar os gastos."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 license = { text = "GNU Affero General Public License v3.0" }
 keywords = ["finanças", "django", "djangorest"]
 classifiers = [
-    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.12",
     "Framework :: Django",
     "License :: OSI Approved :: GNU Affero General Public License v3"
 ]
@@ -27,7 +27,7 @@ dependencies = [
     "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular>=0.29.0",
     "google-generativeai>=0.8.6",
-    "safety>=3.7.0",
+    "psycopg[binary]>=3.0",
     "uvicorn>=0.41.0",
 ]
 
@@ -40,10 +40,12 @@ dev = [
     "ruff>=0.15.5",
     "pre-commit",
     "bandit>=1.9.4",
+    "safety>=3.7.0",
     "rich>=14.3.3",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.5",
     "pytest-django>=4.12.0",
+    "pytest-cov>=6.0",
 ]
 
 [tool.ruff]
@@ -56,7 +58,7 @@ select = [
     "F",   # Pyflakes: acha variáveis declaradas e não usadas
     "I",   # isort: organiza os imports em ordem alfabética e por grupos
     "B",   # Bugbear: detecta armadilhas e possíveis bugs invisíveis
-    "UP",  # pyupgrade: força você a usar a sintaxe mais moderna do Python 3.14
+    "UP",  # pyupgrade: força você a usar a sintaxe mais moderna do Python 3.12
     "SIM", # Simplify: sugere simplificações de lógica (ex: juntar vários IFs)
     "C4",  # Comprehensions: otimiza a criação de listas e dicionários
     "N",   # Naming: te obriga a usar nomes corretos
@@ -68,13 +70,20 @@ select = [
     "RUF", # Ruff Specific: Regras exclusivas de segurança do Ruff
     "DJ",  # flake8-django: Regras específicas para o ecossistema Django
 ]
-ignore = []
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 docstring-code-format = true
 
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["--strict-markers", "--cov=.", "--cov-report=term-missing"]
+
 [tool.bandit]
 exclude_dirs = [".venv", "venv", "tests", "migrations"]
 targets = ["."]
+severity = "low"
+confidence = "low"
