@@ -1,0 +1,80 @@
+[project]
+name = "cofrinho-pessoal"
+version = "0.1.0"
+description = "Projeto para uso pessoal com um objetivo de ajudar a organizar os gastos."
+readme = "README.md"
+requires-python = ">=3.14"
+license = { text = "GNU Affero General Public License v3.0" }
+keywords = ["finanças", "django", "djangorest"]
+classifiers = [
+    "Programming Language :: Python :: 3.14",
+    "Framework :: Django",
+    "License :: OSI Approved :: GNU Affero General Public License v3"
+]
+
+authors = [
+    { name = "Bryan Nicholas", email = "nicholas.fm4@gmail.com" }
+]
+
+dependencies = [
+    "django>=6.0.3",
+    "django-axes>=8.3.1",
+    "django-cors-headers>=4.9.0",
+    "django-environ>=0.13.0",
+    "django-filter>=25.2",
+    "django-jazzmin>=3.0.3",
+    "djangorestframework>=3.16.1",
+    "djangorestframework-simplejwt>=5.5.1",
+    "drf-spectacular>=0.29.0",
+    "google-generativeai>=0.8.6",
+    "safety>=3.7.0",
+    "uvicorn>=0.41.0",
+]
+
+[project.urls]
+Repository = "https://github.com/Nicholas-UFC/Cofrinho_Pessoal"
+Issues = "https://github.com/Nicholas-UFC/Cofrinho_Pessoal/issues"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.5",
+    "pre-commit",
+    "bandit>=1.9.4",
+    "rich>=14.3.3",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.5",
+    "pytest-django>=4.12.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # Erros de estilo padrão PEP 8
+    "F",   # Pyflakes: acha variáveis declaradas e não usadas
+    "I",   # isort: organiza os imports em ordem alfabética e por grupos
+    "B",   # Bugbear: detecta armadilhas e possíveis bugs invisíveis
+    "UP",  # pyupgrade: força você a usar a sintaxe mais moderna do Python 3.14
+    "SIM", # Simplify: sugere simplificações de lógica (ex: juntar vários IFs)
+    "C4",  # Comprehensions: otimiza a criação de listas e dicionários
+    "N",   # Naming: te obriga a usar nomes corretos
+    "RET", # Return: melhora a clareza de onde as suas funções devolvem os resultados
+    "A",   # Builtins: Impede que você sobrescreva variáveis do sistema (ex: list, str)
+    "PTH", # Pathlib: Obriga a usar manipulação moderna de caminhos de arquivos
+    "ARG", # Unused Arguments: Avisa se uma função tem parâmetros que não são usados
+    "PL",  # Pylint: Analisa a complexidade matemática do seu código
+    "RUF", # Ruff Specific: Regras exclusivas de segurança do Ruff
+    "DJ",  # flake8-django: Regras específicas para o ecossistema Django
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.bandit]
+exclude_dirs = [".venv", "venv", "tests", "migrations"]
+targets = ["."]
