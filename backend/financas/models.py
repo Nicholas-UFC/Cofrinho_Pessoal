@@ -1,29 +1,20 @@
 from typing import ClassVar
 
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
 
 from financas.validators import validar_valor_positivo
 
 # Campos que nunca devem ser alterados após a criação do registro.
-# O método save() usa essa lista para excluí-los de qualquer UPDATE.
 _CAMPOS_IMUTAVEIS = {"id", "criado_em"}
 
 
-# Tabela de categorias de gastos (ex: Alimentação, Transporte).
-# Usada como chave estrangeira em Gasto.
-class Categoria(models.Model):
-    # Nome único — não permite duas categorias com o mesmo nome.
-    nome = models.CharField(max_length=100, unique=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
-
+# Mixin reutilizável que protege campos imutáveis em qualquer UPDATE.
+# Em vez de sobrescrever save() em cada model, basta herdar deste mixin.
+class CamposImutaveisMixin(models.Model):
     class Meta:
-        ordering: ClassVar = ["nome"]
-        verbose_name = "Categoria"
-        verbose_name_plural = "Categorias"
-
-    def __str__(self) -> str:
-        return self.nome
+        abstract = True
 
     def save(self, *args: object, **kwargs: object) -> None:
         # Em updates, limita os campos gravados para proteger
@@ -38,35 +29,70 @@ class Categoria(models.Model):
         super().save(*args, **kwargs)
 
 
+# Tabela de categorias de gastos (ex: Alimentação, Transporte).
+# Usada como chave estrangeira em Gasto.
+class Categoria(CamposImutaveisMixin):
+    # Cada usuário pode ter suas próprias categorias.
+    # Dois usuários diferentes podem ter o mesmo nome de categoria.
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="categorias",
+    )
+    nome = models.CharField(max_length=100)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering: ClassVar = ["nome"]
+        verbose_name = "Categoria"
+        verbose_name_plural = "Categorias"
+        # Nome único por usuário (não globalmente).
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["usuario", "nome"],
+                name="categoria_nome_unico_por_usuario",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.nome
+
+
 # Tabela de fontes de renda (ex: Salário, Freelance).
 # Usada como chave estrangeira em Entrada.
-class Fonte(models.Model):
-    # Nome único — não permite duas fontes com o mesmo nome.
-    nome = models.CharField(max_length=100, unique=True)
+class Fonte(CamposImutaveisMixin):
+    # Cada usuário pode ter suas próprias fontes.
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="fontes",
+    )
+    nome = models.CharField(max_length=100)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering: ClassVar = ["nome"]
         verbose_name = "Fonte"
         verbose_name_plural = "Fontes"
+        # Nome único por usuário (não globalmente).
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["usuario", "nome"],
+                name="fonte_nome_unico_por_usuario",
+            )
+        ]
 
     def __str__(self) -> str:
         return self.nome
 
-    def save(self, *args: object, **kwargs: object) -> None:
-        # Mesma proteção de campos imutáveis aplicada em Categoria.
-        if self.pk and "update_fields" not in kwargs:
-            updatable = [
-                f.name
-                for f in self._meta.local_fields
-                if f.name not in _CAMPOS_IMUTAVEIS
-            ]
-            kwargs["update_fields"] = updatable
-        super().save(*args, **kwargs)
-
 
 # Tabela de gastos — registra cada saída de dinheiro.
-class Gasto(models.Model):
+class Gasto(CamposImutaveisMixin):
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="gastos",
+    )
     descricao = models.CharField(max_length=200)
     valor = models.DecimalField(
         max_digits=10,
@@ -99,20 +125,14 @@ class Gasto(models.Model):
     def __str__(self) -> str:
         return f"{self.descricao} - R$ {self.valor}"
 
-    def save(self, *args: object, **kwargs: object) -> None:
-        # Mesma proteção de campos imutáveis aplicada em Categoria.
-        if self.pk and "update_fields" not in kwargs:
-            updatable = [
-                f.name
-                for f in self._meta.local_fields
-                if f.name not in _CAMPOS_IMUTAVEIS
-            ]
-            kwargs["update_fields"] = updatable
-        super().save(*args, **kwargs)
-
 
 # Tabela de entradas — registra cada recebimento de dinheiro.
-class Entrada(models.Model):
+class Entrada(CamposImutaveisMixin):
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="entradas",
+    )
     descricao = models.CharField(max_length=200)
     valor = models.DecimalField(
         max_digits=10,
@@ -144,14 +164,3 @@ class Entrada(models.Model):
 
     def __str__(self) -> str:
         return f"{self.descricao} - R$ {self.valor}"
-
-    def save(self, *args: object, **kwargs: object) -> None:
-        # Mesma proteção de campos imutáveis aplicada em Categoria.
-        if self.pk and "update_fields" not in kwargs:
-            updatable = [
-                f.name
-                for f in self._meta.local_fields
-                if f.name not in _CAMPOS_IMUTAVEIS
-            ]
-            kwargs["update_fields"] = updatable
-        super().save(*args, **kwargs)

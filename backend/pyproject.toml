@@ -79,6 +79,8 @@ select = [
 # ARG: fixtures do pytest são injetadas por nome, não referenciadas diretamente.
 # PLR2004: valores literais em asserts de teste são aceitáveis e legíveis.
 "**/test_*.py" = ["ARG", "PLR2004"]
+# manage.py é boilerplate gerado pelo Django — suprime avisos de estilo.
+"manage.py" = ["ANN201", "PLC0415"]
 
 [tool.ruff.format]
 quote-style = "double"
