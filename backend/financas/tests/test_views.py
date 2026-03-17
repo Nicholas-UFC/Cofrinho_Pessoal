@@ -40,31 +40,54 @@ def auth_client(client: APIClient, user: User) -> APIClient:
 
 
 @pytest.fixture
-def categoria(db: None) -> Categoria:
-    return Categoria.objects.create(nome="Alimentação")
+def outro_user(db: None) -> User:
+    # Segundo usuário para testes de isolamento multi-usuário.
+    return User.objects.create_user(
+        username="outrouser", password="outropass123"
+    )
 
 
 @pytest.fixture
-def fonte(db: None) -> Fonte:
-    return Fonte.objects.create(nome="Salário")
+def outro_client(outro_user: User) -> APIClient:
+    # Cliente autenticado como o segundo usuário.
+    c = APIClient()
+    response = c.post(
+        "/api/token/",
+        {"username": "outrouser", "password": "outropass123"},
+    )
+    token = response.data["access"]
+    c.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    return c
 
 
 @pytest.fixture
-def gasto(db: None, categoria: Categoria) -> Gasto:
+def categoria(user: User) -> Categoria:
+    return Categoria.objects.create(nome="Alimentação", usuario=user)
+
+
+@pytest.fixture
+def fonte(user: User) -> Fonte:
+    return Fonte.objects.create(nome="Salário", usuario=user)
+
+
+@pytest.fixture
+def gasto(user: User, categoria: Categoria) -> Gasto:
     return Gasto.objects.create(
         descricao="Supermercado",
         valor=Decimal("150.00"),
         categoria=categoria,
+        usuario=user,
         data=date.today(),
     )
 
 
 @pytest.fixture
-def entrada(db: None, fonte: Fonte) -> Entrada:
+def entrada(user: User, fonte: Fonte) -> Entrada:
     return Entrada.objects.create(
         descricao="Salário Janeiro",
         valor=Decimal("3000.00"),
         fonte=fonte,
+        usuario=user,
         data=date.today(),
     )
 
@@ -145,6 +168,74 @@ class TestCategoriaViewSet:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    # --- Isolamento multi-usuário ---
+
+    def test_list_nao_exibe_categorias_de_outro_usuario(
+        self,
+        auth_client: APIClient,
+        categoria: Categoria,
+        outro_user: User,
+    ) -> None:
+        # Categoria de outro usuário não deve aparecer na listagem.
+        Categoria.objects.create(nome="Lazer", usuario=outro_user)
+        response = auth_client.get(reverse("categoria-list"))
+        assert response.data["count"] == 1
+
+    def test_retrieve_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Categoria.objects.create(nome="Lazer", usuario=outro_user)
+        url = reverse("categoria-detail", args=[outra.pk])
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Categoria.objects.create(nome="Lazer", usuario=outro_user)
+        url = reverse("categoria-detail", args=[outra.pk])
+        response = auth_client.put(url, {"nome": "Hackeado"})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_destroy_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Categoria.objects.create(nome="Lazer", usuario=outro_user)
+        url = reverse("categoria-detail", args=[outra.pk])
+        response = auth_client.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # --- Unique together por usuário ---
+
+    def test_nome_igual_em_usuarios_diferentes_e_permitido_via_api(
+        self,
+        auth_client: APIClient,
+        outro_client: APIClient,
+        categoria: Categoria,
+    ) -> None:
+        # user já tem "Alimentação"; outro_user pode criar com o mesmo nome.
+        response = outro_client.post(
+            reverse("categoria-list"), {"nome": "Alimentação"}
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    # --- Serializer ignora campo usuario enviado pelo cliente ---
+
+    def test_usuario_enviado_pelo_cliente_e_ignorado(
+        self,
+        auth_client: APIClient,
+        user: User,
+        outro_user: User,
+    ) -> None:
+        # Mesmo enviando o ID de outro usuário, o servidor usa o JWT.
+        response = auth_client.post(
+            reverse("categoria-list"),
+            {"nome": "Nova", "usuario": outro_user.pk},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        cat = Categoria.objects.get(nome="Nova")
+        assert cat.usuario == user
+
 
 # ---------------------------------------------------------------------------
 # Fonte
@@ -189,6 +280,66 @@ class TestFonteViewSet:
     ) -> None:
         response = auth_client.post(reverse("fonte-list"), {"nome": "Salário"})
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    # --- Isolamento multi-usuário ---
+
+    def test_list_nao_exibe_fontes_de_outro_usuario(
+        self, auth_client: APIClient, fonte: Fonte, outro_user: User
+    ) -> None:
+        Fonte.objects.create(nome="Freelance", usuario=outro_user)
+        response = auth_client.get(reverse("fonte-list"))
+        assert response.data["count"] == 1
+
+    def test_retrieve_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Fonte.objects.create(nome="Freelance", usuario=outro_user)
+        url = reverse("fonte-detail", args=[outra.pk])
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Fonte.objects.create(nome="Freelance", usuario=outro_user)
+        url = reverse("fonte-detail", args=[outra.pk])
+        response = auth_client.put(url, {"nome": "Hackeado"})
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_destroy_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra = Fonte.objects.create(nome="Freelance", usuario=outro_user)
+        url = reverse("fonte-detail", args=[outra.pk])
+        response = auth_client.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # --- Unique together por usuário ---
+
+    def test_nome_igual_em_usuarios_diferentes_e_permitido_via_api(
+        self,
+        auth_client: APIClient,
+        outro_client: APIClient,
+        fonte: Fonte,
+    ) -> None:
+        # user já tem "Salário"; outro_user pode criar com o mesmo nome.
+        response = outro_client.post(
+            reverse("fonte-list"), {"nome": "Salário"}
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    # --- Serializer ignora campo usuario enviado pelo cliente ---
+
+    def test_usuario_enviado_pelo_cliente_e_ignorado(
+        self, auth_client: APIClient, user: User, outro_user: User
+    ) -> None:
+        response = auth_client.post(
+            reverse("fonte-list"),
+            {"nome": "Nova Fonte", "usuario": outro_user.pk},
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        f = Fonte.objects.get(nome="Nova Fonte")
+        assert f.usuario == user
 
 
 # ---------------------------------------------------------------------------
@@ -348,6 +499,112 @@ class TestGastoViewSet:
         gasto = Gasto.objects.get(pk=response.data["id"])
         assert gasto.criado_em.year != 2000
 
+    # --- Isolamento multi-usuário ---
+
+    def test_list_nao_exibe_gastos_de_outro_usuario(
+        self,
+        auth_client: APIClient,
+        gasto: Gasto,
+        outro_user: User,
+    ) -> None:
+        outra_cat = Categoria.objects.create(
+            nome="Transporte", usuario=outro_user
+        )
+        Gasto.objects.create(
+            descricao="Uber",
+            valor=Decimal("30.00"),
+            categoria=outra_cat,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("gasto-list"))
+        assert response.data["count"] == 1
+
+    def test_retrieve_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra_cat = Categoria.objects.create(
+            nome="Transporte", usuario=outro_user
+        )
+        outro_gasto = Gasto.objects.create(
+            descricao="Uber",
+            valor=Decimal("30.00"),
+            categoria=outra_cat,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("gasto-detail", args=[outro_gasto.pk])
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_de_outro_usuario_retorna_404(
+        self,
+        auth_client: APIClient,
+        outro_user: User,
+        categoria: Categoria,
+    ) -> None:
+        outra_cat = Categoria.objects.create(
+            nome="Transporte", usuario=outro_user
+        )
+        outro_gasto = Gasto.objects.create(
+            descricao="Uber",
+            valor=Decimal("30.00"),
+            categoria=outra_cat,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("gasto-detail", args=[outro_gasto.pk])
+        response = auth_client.put(
+            url,
+            {
+                "descricao": "Hackeado",
+                "valor": "1.00",
+                "categoria": categoria.pk,
+                "data": date.today().isoformat(),
+            },
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_destroy_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra_cat = Categoria.objects.create(
+            nome="Transporte", usuario=outro_user
+        )
+        outro_gasto = Gasto.objects.create(
+            descricao="Uber",
+            valor=Decimal("30.00"),
+            categoria=outra_cat,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("gasto-detail", args=[outro_gasto.pk])
+        response = auth_client.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # --- Serializer ignora campo usuario enviado pelo cliente ---
+
+    def test_usuario_enviado_pelo_cliente_e_ignorado(
+        self,
+        auth_client: APIClient,
+        user: User,
+        outro_user: User,
+        categoria: Categoria,
+    ) -> None:
+        response = auth_client.post(
+            reverse("gasto-list"),
+            {
+                "descricao": "Teste",
+                "valor": "10.00",
+                "categoria": categoria.pk,
+                "data": date.today().isoformat(),
+                "usuario": outro_user.pk,
+            },
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        gasto = Gasto.objects.get(pk=response.data["id"])
+        assert gasto.usuario == user
+
 
 # ---------------------------------------------------------------------------
 # Entrada
@@ -506,6 +763,109 @@ class TestEntradaViewSet:
         entrada = Entrada.objects.get(pk=response.data["id"])
         assert entrada.criado_em.year != 2000
 
+    # --- Isolamento multi-usuário ---
+
+    def test_list_nao_exibe_entradas_de_outro_usuario(
+        self,
+        auth_client: APIClient,
+        entrada: Entrada,
+        outro_user: User,
+    ) -> None:
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
+        Entrada.objects.create(
+            descricao="Renda extra",
+            valor=Decimal("500.00"),
+            fonte=outra_fonte,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("entrada-list"))
+        assert response.data["count"] == 1
+
+    def test_retrieve_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
+        outra_entrada = Entrada.objects.create(
+            descricao="Renda extra",
+            valor=Decimal("500.00"),
+            fonte=outra_fonte,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("entrada-detail", args=[outra_entrada.pk])
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User, fonte: Fonte
+    ) -> None:
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
+        outra_entrada = Entrada.objects.create(
+            descricao="Renda extra",
+            valor=Decimal("500.00"),
+            fonte=outra_fonte,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("entrada-detail", args=[outra_entrada.pk])
+        response = auth_client.put(
+            url,
+            {
+                "descricao": "Hackeado",
+                "valor": "1.00",
+                "fonte": fonte.pk,
+                "data": date.today().isoformat(),
+            },
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_destroy_de_outro_usuario_retorna_404(
+        self, auth_client: APIClient, outro_user: User
+    ) -> None:
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
+        outra_entrada = Entrada.objects.create(
+            descricao="Renda extra",
+            valor=Decimal("500.00"),
+            fonte=outra_fonte,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        url = reverse("entrada-detail", args=[outra_entrada.pk])
+        response = auth_client.delete(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    # --- Serializer ignora campo usuario enviado pelo cliente ---
+
+    def test_usuario_enviado_pelo_cliente_e_ignorado(
+        self,
+        auth_client: APIClient,
+        user: User,
+        outro_user: User,
+        fonte: Fonte,
+    ) -> None:
+        response = auth_client.post(
+            reverse("entrada-list"),
+            {
+                "descricao": "Teste",
+                "valor": "100.00",
+                "fonte": fonte.pk,
+                "data": date.today().isoformat(),
+                "usuario": outro_user.pk,
+            },
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        entrada = Entrada.objects.get(pk=response.data["id"])
+        assert entrada.usuario == user
+
 
 # ---------------------------------------------------------------------------
 # Filtros — Gasto
@@ -515,20 +875,22 @@ class TestEntradaViewSet:
 @pytest.mark.django_db
 class TestGastoFiltros:
     def test_filtro_por_categoria(
-        self, auth_client: APIClient, categoria: Categoria
+        self, auth_client: APIClient, user: User, categoria: Categoria
     ) -> None:
-        # Cria um gasto na categoria fixture e outro em categoria diferente.
+        # Gasto na categoria fixture; gasto em outra categoria — filtra 1.
         Gasto.objects.create(
             descricao="A",
             valor=Decimal("10.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
-        outra = Categoria.objects.create(nome="Outra")
+        outra = Categoria.objects.create(nome="Outra", usuario=user)
         Gasto.objects.create(
             descricao="B",
             valor=Decimal("20.00"),
             categoria=outra,
+            usuario=user,
             data=date.today(),
         )
         url = reverse("gasto-list") + f"?categoria={categoria.pk}"
@@ -537,7 +899,7 @@ class TestGastoFiltros:
         assert response.data["count"] == 1
 
     def test_filtro_por_data_gte(
-        self, auth_client: APIClient, categoria: Categoria
+        self, auth_client: APIClient, user: User, categoria: Categoria
     ) -> None:
         hoje = date.today()
         ontem = hoje - timedelta(days=1)
@@ -545,12 +907,14 @@ class TestGastoFiltros:
             descricao="Hoje",
             valor=Decimal("10.00"),
             categoria=categoria,
+            usuario=user,
             data=hoje,
         )
         Gasto.objects.create(
             descricao="Ontem",
             valor=Decimal("10.00"),
             categoria=categoria,
+            usuario=user,
             data=ontem,
         )
         url = reverse("gasto-list") + f"?data__gte={hoje.isoformat()}"
@@ -559,18 +923,20 @@ class TestGastoFiltros:
         assert response.data["count"] == 1
 
     def test_filtro_por_valor_lte(
-        self, auth_client: APIClient, categoria: Categoria
+        self, auth_client: APIClient, user: User, categoria: Categoria
     ) -> None:
         Gasto.objects.create(
             descricao="Barato",
             valor=Decimal("10.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         Gasto.objects.create(
             descricao="Caro",
             valor=Decimal("500.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         url = reverse("gasto-list") + "?valor__lte=100"
@@ -587,19 +953,21 @@ class TestGastoFiltros:
 @pytest.mark.django_db
 class TestEntradaFiltros:
     def test_filtro_por_fonte(
-        self, auth_client: APIClient, fonte: Fonte
+        self, auth_client: APIClient, user: User, fonte: Fonte
     ) -> None:
         Entrada.objects.create(
             descricao="A",
             valor=Decimal("100.00"),
             fonte=fonte,
+            usuario=user,
             data=date.today(),
         )
-        outra = Fonte.objects.create(nome="Outra")
+        outra = Fonte.objects.create(nome="Outra", usuario=user)
         Entrada.objects.create(
             descricao="B",
             valor=Decimal("200.00"),
             fonte=outra,
+            usuario=user,
             data=date.today(),
         )
         url = reverse("entrada-list") + f"?fonte={fonte.pk}"
@@ -608,18 +976,20 @@ class TestEntradaFiltros:
         assert response.data["count"] == 1
 
     def test_filtro_por_valor_gte(
-        self, auth_client: APIClient, fonte: Fonte
+        self, auth_client: APIClient, user: User, fonte: Fonte
     ) -> None:
         Entrada.objects.create(
             descricao="Pequena",
             valor=Decimal("50.00"),
             fonte=fonte,
+            usuario=user,
             data=date.today(),
         )
         Entrada.objects.create(
             descricao="Grande",
             valor=Decimal("5000.00"),
             fonte=fonte,
+            usuario=user,
             data=date.today(),
         )
         url = reverse("entrada-list") + "?valor__gte=1000"
@@ -636,13 +1006,14 @@ class TestEntradaFiltros:
 @pytest.mark.django_db
 class TestPaginacao:
     def test_resposta_paginada_tem_estrutura_correta(
-        self, auth_client: APIClient, categoria: Categoria
+        self, auth_client: APIClient, user: User, categoria: Categoria
     ) -> None:
-        # Cria 1 gasto e verifica que a resposta tem campos de paginação.
+        # Cria 1 gasto e verifica os campos de paginação na resposta.
         Gasto.objects.create(
             descricao="Teste",
             valor=Decimal("10.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         response = auth_client.get(reverse("gasto-list"))
@@ -653,13 +1024,14 @@ class TestPaginacao:
         assert "results" in response.data
 
     def test_count_reflete_total_de_registros(
-        self, auth_client: APIClient, categoria: Categoria
+        self, auth_client: APIClient, user: User, categoria: Categoria
     ) -> None:
         for i in range(3):
             Gasto.objects.create(
                 descricao=f"Gasto {i}",
                 valor=Decimal("10.00"),
                 categoria=categoria,
+                usuario=user,
                 data=date.today(),
             )
         response = auth_client.get(reverse("gasto-list"))
@@ -685,6 +1057,7 @@ class TestResumo:
     def test_resumo_calcula_saldo(
         self,
         auth_client: APIClient,
+        user: User,
         categoria: Categoria,
         fonte: Fonte,
     ) -> None:
@@ -692,12 +1065,14 @@ class TestResumo:
             descricao="Salário",
             valor=Decimal("3000.00"),
             fonte=fonte,
+            usuario=user,
             data=date.today(),
         )
         Gasto.objects.create(
             descricao="Aluguel",
             valor=Decimal("1000.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         response = auth_client.get(reverse("resumo"))
@@ -708,19 +1083,22 @@ class TestResumo:
     def test_resumo_agrupa_gastos_por_categoria(
         self,
         auth_client: APIClient,
+        user: User,
         categoria: Categoria,
     ) -> None:
-        outra = Categoria.objects.create(nome="Transporte")
+        outra = Categoria.objects.create(nome="Transporte", usuario=user)
         Gasto.objects.create(
             descricao="Mercado",
             valor=Decimal("200.00"),
             categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         Gasto.objects.create(
             descricao="Uber",
             valor=Decimal("50.00"),
             categoria=outra,
+            usuario=user,
             data=date.today(),
         )
         response = auth_client.get(reverse("resumo"))
@@ -734,3 +1112,54 @@ class TestResumo:
     def test_resumo_sem_token_retorna_401(self, client: APIClient) -> None:
         response = client.get(reverse("resumo"))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # --- Isolamento multi-usuário ---
+
+    def test_resumo_nao_inclui_dados_de_outro_usuario(
+        self,
+        auth_client: APIClient,
+        user: User,
+        categoria: Categoria,
+        fonte: Fonte,
+        outro_user: User,
+    ) -> None:
+        # Dados do usuário autenticado.
+        Entrada.objects.create(
+            descricao="Salário",
+            valor=Decimal("3000.00"),
+            fonte=fonte,
+            usuario=user,
+            data=date.today(),
+        )
+        Gasto.objects.create(
+            descricao="Aluguel",
+            valor=Decimal("1000.00"),
+            categoria=categoria,
+            usuario=user,
+            data=date.today(),
+        )
+        # Dados de outro usuário — não devem aparecer no resumo.
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
+        outra_cat = Categoria.objects.create(
+            nome="Alimentação", usuario=outro_user
+        )
+        Entrada.objects.create(
+            descricao="Renda extra",
+            valor=Decimal("99999.00"),
+            fonte=outra_fonte,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        Gasto.objects.create(
+            descricao="Compra",
+            valor=Decimal("99999.00"),
+            categoria=outra_cat,
+            usuario=outro_user,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("resumo"))
+        assert response.data["total_entradas"] == Decimal("3000.00")
+        assert response.data["total_gastos"] == Decimal("1000.00")
+        assert response.data["saldo"] == Decimal("2000.00")
