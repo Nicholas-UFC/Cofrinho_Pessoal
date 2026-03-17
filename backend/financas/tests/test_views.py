@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -103,7 +103,7 @@ class TestCategoriaViewSet:
     def test_list(self, auth_client: APIClient, categoria: Categoria) -> None:
         response = auth_client.get(reverse("categoria-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert response.data["count"] == 1
 
     def test_create(self, auth_client: APIClient) -> None:
         response = auth_client.post(
@@ -156,7 +156,7 @@ class TestFonteViewSet:
     def test_list(self, auth_client: APIClient, fonte: Fonte) -> None:
         response = auth_client.get(reverse("fonte-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert response.data["count"] == 1
 
     def test_create(self, auth_client: APIClient) -> None:
         response = auth_client.post(
@@ -201,7 +201,7 @@ class TestGastoViewSet:
     def test_list(self, auth_client: APIClient, gasto: Gasto) -> None:
         response = auth_client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert response.data["count"] == 1
 
     def test_create(
         self, auth_client: APIClient, categoria: Categoria
@@ -359,7 +359,7 @@ class TestEntradaViewSet:
     def test_list(self, auth_client: APIClient, entrada: Entrada) -> None:
         response = auth_client.get(reverse("entrada-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        assert response.data["count"] == 1
 
     def test_create(self, auth_client: APIClient, fonte: Fonte) -> None:
         response = auth_client.post(
@@ -505,3 +505,232 @@ class TestEntradaViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         entrada = Entrada.objects.get(pk=response.data["id"])
         assert entrada.criado_em.year != 2000
+
+
+# ---------------------------------------------------------------------------
+# Filtros — Gasto
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestGastoFiltros:
+    def test_filtro_por_categoria(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        # Cria um gasto na categoria fixture e outro em categoria diferente.
+        Gasto.objects.create(
+            descricao="A",
+            valor=Decimal("10.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        outra = Categoria.objects.create(nome="Outra")
+        Gasto.objects.create(
+            descricao="B",
+            valor=Decimal("20.00"),
+            categoria=outra,
+            data=date.today(),
+        )
+        url = reverse("gasto-list") + f"?categoria={categoria.pk}"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+
+    def test_filtro_por_data_gte(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        hoje = date.today()
+        ontem = hoje - timedelta(days=1)
+        Gasto.objects.create(
+            descricao="Hoje",
+            valor=Decimal("10.00"),
+            categoria=categoria,
+            data=hoje,
+        )
+        Gasto.objects.create(
+            descricao="Ontem",
+            valor=Decimal("10.00"),
+            categoria=categoria,
+            data=ontem,
+        )
+        url = reverse("gasto-list") + f"?data__gte={hoje.isoformat()}"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+
+    def test_filtro_por_valor_lte(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        Gasto.objects.create(
+            descricao="Barato",
+            valor=Decimal("10.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        Gasto.objects.create(
+            descricao="Caro",
+            valor=Decimal("500.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        url = reverse("gasto-list") + "?valor__lte=100"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Filtros — Entrada
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestEntradaFiltros:
+    def test_filtro_por_fonte(
+        self, auth_client: APIClient, fonte: Fonte
+    ) -> None:
+        Entrada.objects.create(
+            descricao="A",
+            valor=Decimal("100.00"),
+            fonte=fonte,
+            data=date.today(),
+        )
+        outra = Fonte.objects.create(nome="Outra")
+        Entrada.objects.create(
+            descricao="B",
+            valor=Decimal("200.00"),
+            fonte=outra,
+            data=date.today(),
+        )
+        url = reverse("entrada-list") + f"?fonte={fonte.pk}"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+
+    def test_filtro_por_valor_gte(
+        self, auth_client: APIClient, fonte: Fonte
+    ) -> None:
+        Entrada.objects.create(
+            descricao="Pequena",
+            valor=Decimal("50.00"),
+            fonte=fonte,
+            data=date.today(),
+        )
+        Entrada.objects.create(
+            descricao="Grande",
+            valor=Decimal("5000.00"),
+            fonte=fonte,
+            data=date.today(),
+        )
+        url = reverse("entrada-list") + "?valor__gte=1000"
+        response = auth_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Paginação
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestPaginacao:
+    def test_resposta_paginada_tem_estrutura_correta(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        # Cria 1 gasto e verifica que a resposta tem campos de paginação.
+        Gasto.objects.create(
+            descricao="Teste",
+            valor=Decimal("10.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("gasto-list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert "count" in response.data
+        assert "next" in response.data
+        assert "previous" in response.data
+        assert "results" in response.data
+
+    def test_count_reflete_total_de_registros(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        for i in range(3):
+            Gasto.objects.create(
+                descricao=f"Gasto {i}",
+                valor=Decimal("10.00"),
+                categoria=categoria,
+                data=date.today(),
+            )
+        response = auth_client.get(reverse("gasto-list"))
+        assert response.data["count"] == 3
+
+
+# ---------------------------------------------------------------------------
+# Resumo financeiro
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+class TestResumo:
+    def test_resumo_sem_dados_retorna_zeros(
+        self, auth_client: APIClient
+    ) -> None:
+        response = auth_client.get(reverse("resumo"))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_entradas"] == 0
+        assert response.data["total_gastos"] == 0
+        assert response.data["saldo"] == 0
+
+    def test_resumo_calcula_saldo(
+        self,
+        auth_client: APIClient,
+        categoria: Categoria,
+        fonte: Fonte,
+    ) -> None:
+        Entrada.objects.create(
+            descricao="Salário",
+            valor=Decimal("3000.00"),
+            fonte=fonte,
+            data=date.today(),
+        )
+        Gasto.objects.create(
+            descricao="Aluguel",
+            valor=Decimal("1000.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("resumo"))
+        assert response.data["total_entradas"] == Decimal("3000.00")
+        assert response.data["total_gastos"] == Decimal("1000.00")
+        assert response.data["saldo"] == Decimal("2000.00")
+
+    def test_resumo_agrupa_gastos_por_categoria(
+        self,
+        auth_client: APIClient,
+        categoria: Categoria,
+    ) -> None:
+        outra = Categoria.objects.create(nome="Transporte")
+        Gasto.objects.create(
+            descricao="Mercado",
+            valor=Decimal("200.00"),
+            categoria=categoria,
+            data=date.today(),
+        )
+        Gasto.objects.create(
+            descricao="Uber",
+            valor=Decimal("50.00"),
+            categoria=outra,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("resumo"))
+        por_categoria = {
+            item["categoria__nome"]: item["total"]
+            for item in response.data["gastos_por_categoria"]
+        }
+        assert por_categoria["Alimentação"] == Decimal("200.00")
+        assert por_categoria["Transporte"] == Decimal("50.00")
+
+    def test_resumo_sem_token_retorna_401(self, client: APIClient) -> None:
+        response = client.get(reverse("resumo"))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
