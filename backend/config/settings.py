@@ -116,6 +116,34 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Jazzmin — personalização do Django Admin
+JAZZMIN_SETTINGS = {
+    "site_title": "Cofrinho Pessoal",
+    "site_header": "Cofrinho Pessoal",
+    "site_brand": "Cofrinho",
+    "welcome_sign": "Bem-vindo ao painel de controle",
+    # Link de atalho no menu superior para a documentação da API.
+    "topmenu_links": [
+        {
+            "name": "API Docs",
+            "url": "/api/docs/",
+            "new_window": True,
+            "icon": "fas fa-book",
+        },
+    ],
+    # Ícones Font Awesome para cada model na barra lateral.
+    "icons": {
+        "auth.User": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "financas.Categoria": "fas fa-tags",
+        "financas.Fonte": "fas fa-wallet",
+        "financas.Gasto": "fas fa-arrow-trend-down",
+        "financas.Entrada": "fas fa-arrow-trend-up",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+}
+
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -128,6 +156,11 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # Paginação padrão: 20 itens por página.
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
+    "PAGE_SIZE": 20,
 }
 
 # SimpleJWT

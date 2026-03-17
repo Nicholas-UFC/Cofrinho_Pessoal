@@ -1,3 +1,4 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from financas.views import (
@@ -5,6 +6,7 @@ from financas.views import (
     EntradaViewSet,
     FonteViewSet,
     GastoViewSet,
+    resumo,
 )
 
 # Router local do app financas — cada ViewSet gera automaticamente
@@ -16,4 +18,5 @@ router.register("fontes", FonteViewSet, basename="fonte")
 router.register("gastos", GastoViewSet, basename="gasto")
 router.register("entradas", EntradaViewSet, basename="entrada")
 
-urlpatterns = router.urls
+# Rota manual para o endpoint de resumo financeiro.
+urlpatterns = [*router.urls, path("resumo/", resumo, name="resumo")]
