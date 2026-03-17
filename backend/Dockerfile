@@ -1,12 +1,14 @@
-FROM debian:bookworm-slim
+FROM python:3.14-slim
 
-# Instala uv (que gerencia o Python também)
+# Instala uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
 WORKDIR /app
 
-# Copia arquivos de dependências e instala sem o grupo dev.
-# O uv baixa automaticamente o Python definido no uv.lock.
+# Força o uv a usar o Python da imagem em vez de baixar outro.
+ENV UV_PYTHON_PREFERENCE=only-system
+
+# Copia arquivos de dependências e instala sem o grupo dev
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
@@ -15,5 +17,4 @@ COPY . .
 
 EXPOSE 8000
 
-# Aplica migrations e sobe o servidor
 CMD [".venv/bin/python", "manage.py", "runserver", "0.0.0.0:8000"]
