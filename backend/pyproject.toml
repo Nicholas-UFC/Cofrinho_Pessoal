@@ -76,7 +76,9 @@ select = [
 [tool.ruff.lint.per-file-ignores]
 # Fixtures do pytest são injetadas por nome — o Ruff não consegue
 # detectar que são "usadas" pelo framework, então ARG é ignorado.
-"**/test_*.py" = ["ARG"]
+# ARG: fixtures do pytest são injetadas por nome, não referenciadas diretamente.
+# PLR2004: valores literais em asserts de teste são aceitáveis e legíveis.
+"**/test_*.py" = ["ARG", "PLR2004"]
 
 [tool.ruff.format]
 quote-style = "double"
