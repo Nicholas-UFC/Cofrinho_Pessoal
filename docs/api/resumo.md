@@ -48,3 +48,5 @@ Authorization: Bearer {token}
 - Quando não há registros, os totais retornam `0` (não `null`).
 - O endpoint não filtra por período — considera todos os registros.
 - A lista `gastos_por_categoria` é ordenada pelo nome da categoria.
+- Os totais consideram **apenas os dados do usuário autenticado** —
+  dados de outros usuários são completamente invisíveis.

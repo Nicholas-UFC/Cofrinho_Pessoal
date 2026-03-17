@@ -2,6 +2,15 @@
 
 Todos os endpoints exigem autenticação JWT. A base da URL é `/api/financas/`.
 
+## Isolamento multi-usuário
+
+Todos os endpoints aplicam isolamento automático por usuário:
+
+- A listagem retorna **apenas os dados do usuário autenticado**.
+- Tentar acessar, editar ou deletar um recurso de outro usuário retorna **`404`**.
+- O campo `usuario` nunca aparece na requisição nem na resposta — ele é definido
+  automaticamente pelo servidor a partir do token JWT.
+
 ## Categorias
 
 | Método   | URL                     | Descrição                  |
