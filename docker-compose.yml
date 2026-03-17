@@ -16,5 +16,24 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cofrinho_backend
+    # DATABASE_URL usa "db" (nome do serviço) em vez de localhost.
+    environment:
+      DATABASE_URL: postgresql://cofrinho:cofrinho123@db:5432/cofrinho
+      SECRET_KEY: dev-secret-key-troque-em-producao
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      TIME_ZONE: America/Fortaleza
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   postgres_data:
