@@ -20,3 +20,6 @@ staticfiles/
 # Cobertura de testes
 .coverage
 htmlcov/
+
+# Claude Code — configurações locais da ferramenta
+.claude/
