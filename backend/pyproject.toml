@@ -50,7 +50,8 @@ dev = [
 
 [tool.ruff]
 target-version = "py312"
-line-length = 88
+line-length = 79
+exclude = ["**/migrations/**"]
 
 [tool.ruff.lint]
 select = [
@@ -69,7 +70,18 @@ select = [
     "PL",  # Pylint: Analisa a complexidade matemática do seu código
     "RUF", # Ruff Specific: Regras exclusivas de segurança do Ruff
     "DJ",  # flake8-django: Regras específicas para o ecossistema Django
+    "ANN", # Annotations: exige type hints em argumentos e retornos
+    "TCH", # Type-checking: move imports de tipo para TYPE_CHECKING
 ]
+[tool.ruff.lint.per-file-ignores]
+# Fixtures do pytest são injetadas por nome — o Ruff não consegue
+# detectar que são "usadas" pelo framework, então ARG é ignorado.
+# ARG: fixtures do pytest são injetadas por nome, não referenciadas diretamente.
+# PLR2004: valores literais em asserts de teste são aceitáveis e legíveis.
+"**/test_*.py" = ["ARG", "PLR2004"]
+# manage.py é boilerplate gerado pelo Django — suprime avisos de estilo.
+"manage.py" = ["ANN201", "PLC0415"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

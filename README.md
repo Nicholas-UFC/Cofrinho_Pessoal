@@ -1,49 +1,65 @@
 # Cofrinho Pessoal
 
-Aplicação pessoal para controle de gastos. Registre despesas via WhatsApp, app mobile ou navegador — com categorização automática por IA.
-
----
-
-## Como funciona
-
-Você envia uma mensagem no WhatsApp (ex: *"gastei 45 reais no mercado"*), a IA categoriza automaticamente e o gasto é registrado. O mesmo pode ser feito pelo app mobile ou pela interface web.
+Aplicação pessoal para controle de gastos e entradas de dinheiro.
+Registre despesas e receitas, filtre por período e categoria, e acompanhe
+seu saldo em tempo real via API REST.
 
 ---
 
 ## Stack
 
-| Camada | Tecnologia |
-| --- | --- |
-| Backend | Django 6 + Django REST Framework |
-| Banco de Dados | PostgreSQL |
-| Autenticação | JWT (SimpleJWT) |
-| IA | Google Gemini |
-| WhatsApp | WAHA Gateway |
-| Frontend Web | React |
-| App Mobile | React Native |
-| Infra | Docker + Nginx |
+| Camada        | Tecnologia                       |
+|---------------|----------------------------------|
+| Backend       | Django 6 + Django REST Framework |
+| Banco (dev)   | SQLite                           |
+| Banco (prod)  | PostgreSQL                       |
+| Autenticação  | JWT via SimpleJWT                |
+| Documentação  | drf-spectacular (Swagger UI)     |
 
 ---
 
-## Arquitetura
+## O que está implementado
 
-```text
-Clientes (WhatsApp / App / Web)
-        │
-        ▼
-   Nginx (proxy reverso)
-        │
-   ┌────┴────┐
-   │         │
-React     Django REST ◄──► Gemini AI
-               │
-           PostgreSQL
-```
+- Cadastro de categorias de gastos e fontes de renda
+- Registro de gastos e entradas com validação de valores
+- Filtros por data, valor e categoria/fonte
+- Paginação automática nas listagens (20 itens por página)
+- Endpoint de resumo com saldo e gastos por categoria
+- Autenticação JWT com renovação automática de token
+- Painel administrativo via Django Admin
+- Documentação interativa via Swagger UI
 
-O WhatsApp entra via WAHA Gateway direto no Django. Os demais clientes passam pelo Nginx.
+## O que ainda não está implementado
+
+- Frontend web
+- App mobile
+- Integração com WhatsApp
+- Integração com Google Gemini (IA para categorização automática)
+- Deploy em produção (Docker, Nginx, PostgreSQL)
+
+## Objetivo futuro
+
+Ser uma ferramenta completa de controle financeiro pessoal onde o usuário
+possa registrar gastos de forma rápida via WhatsApp ou app mobile, com
+categorização automática por IA e visualização clara do saldo e dos hábitos
+de consumo.
 
 ---
 
 ## Licença
 
 [GNU AGPL v3.0](LICENSE)
+
+---
+
+## Documentação
+
+Para entender a API, os modelos e como configurar o ambiente localmente,
+rode a documentação completa com:
+
+```bash
+cd backend
+uv run mkdocs serve
+```
+
+Acesse em `http://127.0.0.1:8000`.

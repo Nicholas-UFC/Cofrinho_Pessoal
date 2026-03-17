@@ -8,3 +8,21 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Variáveis de ambiente (nunca commitar)
+.env
+*.env
+
+# Django
+staticfiles/
+*.sqlite3
+
+# Cobertura de testes
+.coverage
+htmlcov/
+
+# MkDocs — build gerado automaticamente
+backend/site/
+
+# Claude Code — configurações locais da ferramenta
+.claude/

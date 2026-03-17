@@ -3,12 +3,13 @@ repos:
     rev: v0.15.5
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args: [ --fix, --config, backend/pyproject.toml ]
       - id: ruff-format
+        args: [ --config, backend/pyproject.toml ]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.10
     hooks:
       - id: bandit
-        args: ["-c", "pyproject.toml"]
+        args: ["-c", "backend/pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
