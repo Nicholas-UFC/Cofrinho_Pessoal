@@ -50,7 +50,8 @@ dev = [
 
 [tool.ruff]
 target-version = "py312"
-line-length = 88
+line-length = 79
+exclude = ["**/migrations/**"]
 
 [tool.ruff.lint]
 select = [
@@ -69,6 +70,8 @@ select = [
     "PL",  # Pylint: Analisa a complexidade matemática do seu código
     "RUF", # Ruff Specific: Regras exclusivas de segurança do Ruff
     "DJ",  # flake8-django: Regras específicas para o ecossistema Django
+    "ANN", # Annotations: exige type hints em argumentos e retornos
+    "TCH", # Type-checking: move imports de tipo para TYPE_CHECKING
 ]
 [tool.ruff.format]
 quote-style = "double"
@@ -76,7 +79,7 @@ indent-style = "space"
 docstring-code-format = true
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "config.settings.dev"
+DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = ["tests.py", "test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
