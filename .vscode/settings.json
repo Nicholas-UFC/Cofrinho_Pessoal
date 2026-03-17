@@ -1,0 +1,6 @@
+{
+  // Aponta para o .venv criado pelo uv dentro de backend/.
+  // Sem isso, o VSCode usa o Python global e não encontra
+  // os pacotes do projeto, gerando falsos avisos de "not installed".
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/Scripts/python.exe"
+}
