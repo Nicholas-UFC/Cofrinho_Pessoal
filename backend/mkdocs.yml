@@ -1,1 +1,39 @@
-site_name: My Docs
+site_name: Cofrinho Pessoal
+site_description: Documentação do projeto Cofrinho Pessoal
+site_author: Bryan Nicholas
+docs_dir: ../docs
+
+theme:
+  name: material
+  language: pt
+  palette:
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Modo escuro
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Modo claro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Início: index.md
+  - Configuração: setup.md
+  - API:
+    - Autenticação: api/autenticacao.md
+    - Endpoints: api/endpoints.md
+    - Resumo: api/resumo.md
+  - Modelos:
+    - Categoria: modelos/categoria.md
+    - Fonte: modelos/fonte.md
+    - Gasto: modelos/gasto.md
+    - Entrada: modelos/entrada.md
