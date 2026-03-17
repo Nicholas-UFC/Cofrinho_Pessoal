@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    container_name: cofrinho_db
+    environment:
+      POSTGRES_DB: cofrinho
+      POSTGRES_USER: cofrinho
+      POSTGRES_PASSWORD: cofrinho123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cofrinho -d cofrinho"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
