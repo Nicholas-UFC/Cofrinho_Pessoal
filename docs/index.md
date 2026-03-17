@@ -10,25 +10,24 @@ com autenticação JWT e documentação interativa via Swagger.
 
 ## Funcionalidades atuais
 
-- Cadastro de categorias de gastos
-- Cadastro de fontes de renda
-- Registro de gastos com categoria, valor e data
-- Registro de entradas com fonte, valor e data
+- Cadastro de categorias de gastos e fontes de renda
+- Registro de gastos e entradas com categoria, valor e data
 - Filtros por data, valor e categoria/fonte
 - Paginação automática (20 itens por página)
 - Endpoint de resumo financeiro com saldo e gastos por categoria
 - Autenticação JWT com renovação automática de token
+- Isolamento multi-usuário (cada usuário vê apenas seus próprios dados)
 
 ## Stack
 
-| Camada         | Tecnologia                    |
-|----------------|-------------------------------|
+| Camada         | Tecnologia                       |
+|----------------|----------------------------------|
 | Backend        | Django 6 + Django REST Framework |
-| Banco (dev)    | SQLite                        |
-| Banco (prod)   | PostgreSQL                    |
-| Autenticação   | JWT via SimpleJWT             |
-| Documentação   | drf-spectacular (Swagger UI)  |
-| Servidor ASGI  | Uvicorn                       |
+| Banco          | PostgreSQL 16 (Docker)           |
+| Linguagem      | Python 3.14                      |
+| Autenticação   | JWT via SimpleJWT                |
+| Documentação   | drf-spectacular (Swagger UI)     |
+| Containers     | Docker + Docker Compose          |
 
 ## Links úteis
 

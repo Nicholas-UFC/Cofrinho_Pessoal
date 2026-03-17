@@ -69,18 +69,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-if DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-else:
-    DATABASES = {
-        "default": env.db("DATABASE_URL"),
-    }
+# PostgreSQL é o único banco suportado — sempre lido do DATABASE_URL.
+DATABASES = {
+    "default": env.db("DATABASE_URL"),
+}
 
+# Configurações de segurança HTTPS — ativas apenas em produção.
+if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
