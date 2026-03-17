@@ -239,11 +239,6 @@ class TestGasto:
             gasto.full_clean()
         assert _MSG_POSITIVO in str(exc_info.value)
 
-    _SKIP_SQLITE = (
-        "SQLite não enforça CheckConstraint — reabilitar com PostgreSQL"
-    )
-
-    @pytest.mark.skip(reason=_SKIP_SQLITE)
     def test_check_constraint_impede_valor_negativo_no_banco(
         self, user: User, categoria: Categoria
     ) -> None:
