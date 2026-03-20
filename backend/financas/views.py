@@ -22,6 +22,8 @@ from financas.serializers import (
 # Permissão herdada do DRF global (IsAuthenticated).
 class CategoriaViewSet(ModelViewSet):
     serializer_class: type[BaseSerializer] = CategoriaSerializer
+    # Desativa paginação — frontend espera lista plana.
+    pagination_class = None
     # Filtra apenas categorias do usuário autenticado.
     queryset: ClassVar = Categoria.objects.none()
 
@@ -36,6 +38,8 @@ class CategoriaViewSet(ModelViewSet):
 # CRUD completo para fontes de renda.
 class FonteViewSet(ModelViewSet):
     serializer_class: type[BaseSerializer] = FonteSerializer
+    # Desativa paginação — frontend espera lista plana.
+    pagination_class = None
     queryset: ClassVar = Fonte.objects.none()
 
     def get_queryset(self) -> QuerySet:
