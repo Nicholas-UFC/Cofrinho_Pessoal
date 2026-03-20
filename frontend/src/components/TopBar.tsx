@@ -4,7 +4,11 @@ import { useAuth } from "../context/useAuth";
 const DJANGO_ADMIN_URL: string =
     import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-export default function TopBar(): JSX.Element {
+interface TopBarProps {
+    onMenuClick: () => void;
+}
+
+export default function TopBar({ onMenuClick }: TopBarProps): JSX.Element {
     const { username, isAdmin, logout } = useAuth();
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -30,11 +34,22 @@ export default function TopBar(): JSX.Element {
                 backgroundColor: "#16213e",
                 borderBottom: "1px solid #1e3a5f",
             }}
-            className="flex items-center justify-between px-6 h-14 shadow"
+            className="flex items-center justify-between px-4 md:px-6 h-14 shadow"
         >
+            {/* Botão hambúrguer — só aparece no mobile */}
+            <button
+                onClick={onMenuClick}
+                style={{ color: "#22c55e" }}
+                className="md:hidden text-2xl leading-none hover:opacity-70 transition-opacity"
+                aria-label="Abrir menu"
+            >
+                ☰
+            </button>
+
+            {/* Logo — só aparece no desktop */}
             <div
                 style={{ color: "#22c55e" }}
-                className="text-lg font-semibold"
+                className="hidden md:block text-lg font-semibold"
             >
                 💰
             </div>
