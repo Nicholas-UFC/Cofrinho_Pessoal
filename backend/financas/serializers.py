@@ -59,15 +59,19 @@ class FonteSerializer(serializers.ModelSerializer):
 
 # Serializer da tabela de gastos.
 class GastoSerializer(serializers.ModelSerializer):
+    categoria_nome = serializers.CharField(source="categoria.nome", read_only=True)
+
     class Meta:
         model = Gasto
         exclude: ClassVar = ["usuario"]
-        read_only_fields: ClassVar = ["id", "criado_em"]
+        read_only_fields: ClassVar = ["id", "criado_em", "categoria_nome"]
 
 
 # Serializer da tabela de entradas de dinheiro.
 class EntradaSerializer(serializers.ModelSerializer):
+    fonte_nome = serializers.CharField(source="fonte.nome", read_only=True)
+
     class Meta:
         model = Entrada
         exclude: ClassVar = ["usuario"]
-        read_only_fields: ClassVar = ["id", "criado_em"]
+        read_only_fields: ClassVar = ["id", "criado_em", "fonte_nome"]
