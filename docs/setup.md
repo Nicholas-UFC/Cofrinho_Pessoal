@@ -3,7 +3,8 @@
 ## Pré-requisitos
 
 - [Docker](https://www.docker.com/) e Docker Compose
-- [uv](https://docs.astral.sh/uv/) (apenas para rodar testes e ferramentas localmente)
+- [uv](https://docs.astral.sh/uv/) (para rodar testes e ferramentas do backend localmente)
+- [pnpm](https://pnpm.io/) (para rodar o frontend localmente)
 
 ## Subir com Docker
 
@@ -28,7 +29,7 @@ Edite o `.env` com os valores desejados (banco, secret key, etc.).
 docker compose up -d
 ```
 
-Isso inicia o PostgreSQL na porta `5432` e o backend Django na porta `8000`.
+Isso inicia o PostgreSQL (5432), o backend Django (8000) e o frontend React (5173).
 
 **4. Crie o superusuário:**
 
@@ -36,13 +37,18 @@ Isso inicia o PostgreSQL na porta `5432` e o backend Django na porta `8000`.
 docker exec cofrinho_backend .venv/bin/python manage.py createsuperuser
 ```
 
-A API estará disponível em `http://localhost:8000`.
+| Serviço  | URL                                  |
+|----------|--------------------------------------|
+| Frontend | <http://localhost:5173>              |
+| API      | <http://localhost:8000>              |
+| Admin    | <http://localhost:8000/admin>        |
+| Swagger  | <http://localhost:8000/api/docs>     |
 
 ---
 
-## Desenvolvimento local (sem Docker para o backend)
+## Desenvolvimento local (sem Docker)
 
-Se preferir rodar o Django diretamente na sua máquina (com o banco no Docker):
+### Backend
 
 **1. Suba apenas o banco:**
 
@@ -50,35 +56,39 @@ Se preferir rodar o Django diretamente na sua máquina (com o banco no Docker):
 docker compose up -d db
 ```
 
-**2. Entre na pasta do backend e instale as dependências:**
+**2. Instale as dependências e rode:**
 
 ```bash
 cd backend
 uv sync --all-groups
-```
-
-**3. Configure o `.env` do backend:**
-
-```bash
-cp .env.example .env
-```
-
-O `DATABASE_URL` deve apontar para `localhost:5432`.
-
-**4. Aplique as migrations e inicie o servidor:**
-
-```bash
+cp .env.example .env   # ajuste DATABASE_URL para localhost:5432
 uv run python manage.py migrate
 uv run python manage.py runserver
 ```
+
+### Frontend
+
+```bash
+cd frontend
+pnpm install
+cp .env.example .env   # ajuste VITE_API_URL se necessário
+pnpm dev
+```
+
+O frontend estará disponível em <http://localhost:5173>.
 
 ---
 
 ## Rodar os testes
 
 ```bash
+# Backend
 cd backend
-uv run pytest
+uv run pytest -v
+
+# Frontend
+cd frontend
+pnpm vitest run
 ```
 
 ## Configurar pre-commit

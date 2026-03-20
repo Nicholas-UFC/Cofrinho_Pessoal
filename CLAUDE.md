@@ -26,7 +26,76 @@ Este projeto adota **Extreme Programming** como metodologia de vibe-coding. As r
 - Cada tarefa gera seu **proprio commit**, com descricao clara e precisa.
 - Se multiplas tarefas forem feitas antes do commit, separar em commits distintos.
 
-## 5. Coding Standard (Estilo do Usuario)
+## 5. Git Emojis (Gitmoji)
+
+- Todo commit deve comecar com um emoji Gitmoji antes do tipo convencional.
+- Formato obrigatorio: `<emoji> <tipo>: <descricao>`
+- Referencia completa em: [https://gitmoji.dev](https://gitmoji.dev)
+
+Emojis disponiveis:
+
+| Emoji | Uso |
+| ----- | --- |
+| ✨ | Nova funcionalidade |
+| 🐛 | Correcao de bug |
+| 🚑 | Hotfix critico |
+| 📝 | Documentacao |
+| 🎨 | Melhoria de estrutura/formato do codigo |
+| ⚡ | Melhoria de performance |
+| 🔥 | Remocao de codigo ou arquivos |
+| 🚀 | Deploy |
+| ✅ | Adicao ou correcao de testes |
+| 🔒 | Correcao de vulnerabilidade de seguranca |
+| 🔑 | Segredos ou chaves |
+| 🔖 | Tag de versao/release |
+| ♻️ | Refatoracao |
+| ➕ | Adicao de dependencia |
+| ➖ | Remocao de dependencia |
+| 🐳 | Docker / infraestrutura |
+| 🔧 | Configuracao (arquivos de config) |
+| 🔨 | Scripts de build ou desenvolvimento |
+| 🌐 | Internacionalizacao / traducao |
+| ✏️ | Correcao de typo |
+| 💄 | UI / estilo visual |
+| 🎉 | Commit inicial |
+| 🚧 | Work in progress |
+| 💚 | Correcao de CI |
+| ⬆️ | Upgrade de dependencia |
+| ⬇️ | Downgrade de dependencia |
+| 📌 | Fixar versao de dependencia |
+| 👷 | Adicao ou atualizacao de CI |
+| 💡 | Adicao de comentarios no codigo |
+| 🔀 | Merge de branches |
+| 📦 | Arquivos compilados ou pacotes |
+| 👽 | Atualizacao por mudanca em API externa |
+| 🍱 | Assets (imagens, fontes, etc.) |
+| ♿ | Acessibilidade |
+| 🗃️ | Mudancas relacionadas a banco de dados |
+| 🔊 | Adicao de logs |
+| 🔇 | Remocao de logs |
+| 👥 | Contribuidores |
+| 🏗️ | Mudancas arquiteturais |
+| 🤡 | Mocks / stubs para testes |
+| 🥚 | Easter egg |
+| 🙈 | Atualizacao de .gitignore |
+| 📸 | Snapshots de testes |
+| ⚗️ | Experimento / prova de conceito |
+| 🔍 | SEO |
+| 🏷️ | Tipos (TypeScript, type hints) |
+| 🌱 | Dados iniciais (seed) |
+| 🚩 | Feature flags |
+| 🥅 | Tratamento de erros |
+| 💫 | Animacoes / transicoes |
+| 🗑️ | Deprecacao de codigo |
+| 🛂 | Autorizacao / autenticacao / permissoes |
+| 🩺 | Health check |
+| 🧱 | Mudancas de infraestrutura |
+| 🧪 | Testes falhando (esperado) |
+| 👔 | Logica de negocio |
+| 🩹 | Fix simples / nao critico |
+| 🧹 | Limpeza de codigo (lint, formatacao) |
+
+## 6. Coding Standard (Estilo do Usuario)
 
 - Refatorar sempre que o usuario pedir, sem resistencia.
 - Seguir as convencoes de codigo ja existentes no projeto (Ruff, Bandit, pre-commit).

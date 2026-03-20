@@ -28,6 +28,7 @@ theme:
 nav:
   - Início: index.md
   - Configuração: setup.md
+  - Frontend: frontend.md
   - API:
     - Autenticação: api/autenticacao.md
     - Endpoints: api/endpoints.md

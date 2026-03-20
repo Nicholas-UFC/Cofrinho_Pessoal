@@ -79,7 +79,8 @@ Todos os endpoints aplicam isolamento automático por usuário:
 
 ## Paginação
 
-Todas as listagens retornam no formato paginado com **20 itens por página**:
+Apenas os endpoints de **gastos** e **entradas** retornam respostas paginadas
+(20 itens por página):
 
 ```json
 {
@@ -91,3 +92,7 @@ Todas as listagens retornam no formato paginado com **20 itens por página**:
 ```
 
 Use `?page=2` para navegar entre as páginas.
+
+Os endpoints de **categorias** e **fontes** retornam sempre uma lista plana
+(sem paginação), pois o frontend precisa carregar todos os itens de uma vez
+para popular os formulários de seleção.
