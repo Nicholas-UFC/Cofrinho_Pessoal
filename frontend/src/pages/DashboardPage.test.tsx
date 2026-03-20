@@ -78,7 +78,66 @@ describe("DashboardPage — erro de API", () => {
         renderWithProviders(<DashboardPage />);
         await waitFor(() => {
             expect(
-                screen.getByText("Erro ao carregar resumo financeiro."),
+                screen.getByText("Erro ao carregar dados do dashboard."),
+            ).toBeInTheDocument();
+        });
+    });
+});
+
+describe("DashboardPage — gráficos", () => {
+    it("exibe o título dos 4 gráficos", async () => {
+        localStorage.setItem("access", makeFakeToken());
+        renderWithProviders(<DashboardPage />);
+        await waitFor(() => {
+            expect(screen.getByText("Entradas vs Gastos")).toBeInTheDocument();
+            expect(
+                screen.getByText("Linha do Tempo — Últimos 3 Meses"),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText("Gastos por Categoria"),
+            ).toBeInTheDocument();
+            expect(screen.getByText("Entradas por Fonte")).toBeInTheDocument();
+        });
+    });
+
+    it("exibe mensagem vazia quando não há gastos", async () => {
+        server.use(
+            http.get("http://localhost:8000/api/financas/gastos/", () =>
+                HttpResponse.json({
+                    count: 0,
+                    next: null,
+                    previous: null,
+                    results: [],
+                }),
+            ),
+        );
+
+        localStorage.setItem("access", makeFakeToken());
+        renderWithProviders(<DashboardPage />);
+        await waitFor(() => {
+            expect(
+                screen.getByText("Nenhum gasto registrado."),
+            ).toBeInTheDocument();
+        });
+    });
+
+    it("exibe mensagem vazia quando não há entradas", async () => {
+        server.use(
+            http.get("http://localhost:8000/api/financas/entradas/", () =>
+                HttpResponse.json({
+                    count: 0,
+                    next: null,
+                    previous: null,
+                    results: [],
+                }),
+            ),
+        );
+
+        localStorage.setItem("access", makeFakeToken());
+        renderWithProviders(<DashboardPage />);
+        await waitFor(() => {
+            expect(
+                screen.getByText("Nenhuma entrada registrada."),
             ).toBeInTheDocument();
         });
     });

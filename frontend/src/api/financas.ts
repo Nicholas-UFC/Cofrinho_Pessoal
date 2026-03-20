@@ -79,3 +79,29 @@ export const createEntrada = (
 
 export const getResumo = (): Promise<{ data: Resumo }> =>
     api.get<Resumo>("/api/financas/resumo/");
+
+export async function getAllGastos(): Promise<Gasto[]> {
+    const all: Gasto[] = [];
+    let page = 1;
+    let hasNext = true;
+    while (hasNext) {
+        const { data } = await getGastos(page);
+        all.push(...data.results);
+        hasNext = data.next !== null;
+        page++;
+    }
+    return all;
+}
+
+export async function getAllEntradas(): Promise<Entrada[]> {
+    const all: Entrada[] = [];
+    let page = 1;
+    let hasNext = true;
+    while (hasNext) {
+        const { data } = await getEntradas(page);
+        all.push(...data.results);
+        hasNext = data.next !== null;
+        page++;
+    }
+    return all;
+}

@@ -38,7 +38,7 @@ describe("DashboardPage", () => {
         renderWithProviders(<DashboardPage />);
         await waitFor(() => {
             expect(
-                screen.getByText(/erro ao carregar resumo/i),
+                screen.getByText(/erro ao carregar dados do dashboard/i),
             ).toBeInTheDocument();
         });
     });
