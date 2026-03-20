@@ -179,6 +179,3 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
-
-# Gemini
-GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
