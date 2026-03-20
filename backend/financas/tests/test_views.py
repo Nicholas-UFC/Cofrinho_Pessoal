@@ -126,7 +126,7 @@ class TestCategoriaViewSet:
     def test_list(self, auth_client: APIClient, categoria: Categoria) -> None:
         response = auth_client.get(reverse("categoria-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
+        assert len(response.data) == 1
 
     def test_create(self, auth_client: APIClient) -> None:
         response = auth_client.post(
@@ -179,7 +179,7 @@ class TestCategoriaViewSet:
         # Categoria de outro usuário não deve aparecer na listagem.
         Categoria.objects.create(nome="Lazer", usuario=outro_user)
         response = auth_client.get(reverse("categoria-list"))
-        assert response.data["count"] == 1
+        assert len(response.data) == 1
 
     def test_retrieve_de_outro_usuario_retorna_404(
         self, auth_client: APIClient, outro_user: User
@@ -247,7 +247,7 @@ class TestFonteViewSet:
     def test_list(self, auth_client: APIClient, fonte: Fonte) -> None:
         response = auth_client.get(reverse("fonte-list"))
         assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
+        assert len(response.data) == 1
 
     def test_create(self, auth_client: APIClient) -> None:
         response = auth_client.post(
@@ -288,7 +288,7 @@ class TestFonteViewSet:
     ) -> None:
         Fonte.objects.create(nome="Freelance", usuario=outro_user)
         response = auth_client.get(reverse("fonte-list"))
-        assert response.data["count"] == 1
+        assert len(response.data) == 1
 
     def test_retrieve_de_outro_usuario_retorna_404(
         self, auth_client: APIClient, outro_user: User
@@ -1080,6 +1080,8 @@ class TestResumo:
         assert response.data["total_gastos"] == Decimal("1000.00")
         assert response.data["saldo"] == Decimal("2000.00")
 
+    # --- Agrupamento por categoria ---
+
     def test_resumo_agrupa_gastos_por_categoria(
         self,
         auth_client: APIClient,
@@ -1163,3 +1165,31 @@ class TestResumo:
         assert response.data["total_entradas"] == Decimal("3000.00")
         assert response.data["total_gastos"] == Decimal("1000.00")
         assert response.data["saldo"] == Decimal("2000.00")
+
+
+# ---------------------------------------------------------------------------
+# Regressão — paginação desabilitada em Categoria e Fonte
+# ---------------------------------------------------------------------------
+# Bug: DEFAULT_PAGINATION_CLASS global fazia CategoriaViewSet e FonteViewSet
+# retornarem {count, next, previous, results:[]} em vez de lista plana.
+# O frontend chamava categorias.map() e recebia
+# "TypeError: categorias.map is not a function", travando /cadastro.
+
+
+@pytest.mark.django_db
+class TestCategoriaFonteSemPaginacao:
+    def test_categorias_retorna_lista_plana(
+        self, auth_client: APIClient, categoria: Categoria
+    ) -> None:
+        # Regressão: deve ser lista, não dict paginado {count, results}.
+        response = auth_client.get(reverse("categoria-list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, list)
+
+    def test_fontes_retorna_lista_plana(
+        self, auth_client: APIClient, fonte: Fonte
+    ) -> None:
+        # Regressão: deve ser lista, não dict paginado {count, results}.
+        response = auth_client.get(reverse("fonte-list"))
+        assert response.status_code == status.HTTP_200_OK
+        assert isinstance(response.data, list)
