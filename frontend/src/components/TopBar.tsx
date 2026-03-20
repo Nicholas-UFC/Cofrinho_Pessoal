@@ -47,8 +47,12 @@ export default function TopBar(): JSX.Element {
                     style={{ color: "#f1f5f9" }}
                     className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity"
                 >
-                    <span style={{ color: "#94a3b8" }}>Olá,</span>
-                    <span style={{ color: "#22c55e" }}>{username}</span>
+                    <span style={{ color: "#94a3b8" }}>
+                        Olá,{" "}
+                        <span style={{ color: "#22c55e" }}>
+                            {username ?? "usuário"}
+                        </span>
+                    </span>
                     <span style={{ color: "#94a3b8" }}>▾</span>
                 </button>
 
