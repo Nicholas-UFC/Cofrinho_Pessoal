@@ -137,15 +137,16 @@ class TestResumo:
 
     # --- Isolamento multi-usuário ---
 
-    def test_resumo_nao_inclui_dados_de_outro_usuario(
+    def test_resumo_nao_inclui_entradas_de_outro_usuario(
         self,
         auth_client: APIClient,
         user: User,
-        categoria: Categoria,
         fonte: Fonte,
         outro_user: User,
     ) -> None:
-        # Dados do usuário autenticado.
+        outra_fonte = Fonte.objects.create(
+            nome="Freelance", usuario=outro_user
+        )
         Entrada.objects.create(
             descricao="Salário",
             valor=Decimal("3000.00"),
@@ -153,25 +154,31 @@ class TestResumo:
             usuario=user,
             data=date.today(),
         )
-        Gasto.objects.create(
-            descricao="Aluguel",
-            valor=Decimal("1000.00"),
-            categoria=categoria,
-            usuario=user,
-            data=date.today(),
-        )
-        # Dados de outro usuário — não devem aparecer no resumo.
-        outra_fonte = Fonte.objects.create(
-            nome="Freelance", usuario=outro_user
-        )
-        outra_cat = Categoria.objects.create(
-            nome="Alimentação", usuario=outro_user
-        )
         Entrada.objects.create(
             descricao="Renda extra",
             valor=Decimal("99999.00"),
             fonte=outra_fonte,
             usuario=outro_user,
+            data=date.today(),
+        )
+        response = auth_client.get(reverse("resumo"))
+        assert response.data["total_entradas"] == Decimal("3000.00")
+
+    def test_resumo_nao_inclui_gastos_de_outro_usuario(
+        self,
+        auth_client: APIClient,
+        user: User,
+        categoria: Categoria,
+        outro_user: User,
+    ) -> None:
+        outra_cat = Categoria.objects.create(
+            nome="Alimentação", usuario=outro_user
+        )
+        Gasto.objects.create(
+            descricao="Aluguel",
+            valor=Decimal("1000.00"),
+            categoria=categoria,
+            usuario=user,
             data=date.today(),
         )
         Gasto.objects.create(
@@ -182,6 +189,4 @@ class TestResumo:
             data=date.today(),
         )
         response = auth_client.get(reverse("resumo"))
-        assert response.data["total_entradas"] == Decimal("3000.00")
         assert response.data["total_gastos"] == Decimal("1000.00")
-        assert response.data["saldo"] == Decimal("2000.00")

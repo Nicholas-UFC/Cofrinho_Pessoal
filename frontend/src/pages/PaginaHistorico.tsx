@@ -1,53 +1,22 @@
-import { useEffect, useState, type JSX } from "react";
-import {
-    getGastos,
-    getEntradas,
-    type Gasto,
-    type Entrada,
-    type PaginatedResponse,
-} from "../api/financas";
+import { useState, type JSX } from "react";
+import { type Gasto, type Entrada } from "../api/financas";
 import { formatarBRL, formatDate } from "../utils/format";
+import { useHistorico } from "../hooks/useHistorico";
 
 type View = "gastos" | "entradas";
 
 export default function PaginaHistorico(): JSX.Element {
     const [view, setView] = useState<View>("gastos");
-    const [gastos, setGastos] = useState<PaginatedResponse<Gasto> | null>(
-        null,
-    );
-    const [entradas, setEntradas] =
-        useState<PaginatedResponse<Entrada> | null>(null);
-    const [gastoPage, setGastoPage] = useState(1);
-    const [entradaPage, setEntradaPage] = useState(1);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let cancelled = false;
-
-        async function fetchData(): Promise<void> {
-            setLoading(true);
-            setError(null);
-            try {
-                if (view === "gastos") {
-                    const { data } = await getGastos(gastoPage);
-                    if (!cancelled) setGastos(data);
-                } else {
-                    const { data } = await getEntradas(entradaPage);
-                    if (!cancelled) setEntradas(data);
-                }
-            } catch {
-                if (!cancelled) setError("Erro ao carregar histórico.");
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        }
-
-        void fetchData();
-        return () => {
-            cancelled = true;
-        };
-    }, [view, gastoPage, entradaPage]);
+    const {
+        gastos,
+        entradas,
+        loading,
+        error,
+        gastoPage,
+        entradaPage,
+        setGastoPage,
+        setEntradaPage,
+    } = useHistorico(view);
 
     const currentPage = view === "gastos" ? gastoPage : entradaPage;
     const setPage = view === "gastos" ? setGastoPage : setEntradaPage;

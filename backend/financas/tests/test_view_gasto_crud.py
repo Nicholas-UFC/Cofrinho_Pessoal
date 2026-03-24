@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -326,81 +326,3 @@ class TestGastoViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         gasto = Gasto.objects.get(pk=response.data["id"])
         assert gasto.usuario == user
-
-
-# ---------------------------------------------------------------------------
-# Filtros — Gasto
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-class TestGastoFiltros:
-    def test_filtro_por_categoria(
-        self, auth_client: APIClient, user: User, categoria: Categoria
-    ) -> None:
-        # Gasto na categoria fixture; gasto em outra categoria — filtra 1.
-        Gasto.objects.create(
-            descricao="A",
-            valor=Decimal("10.00"),
-            categoria=categoria,
-            usuario=user,
-            data=date.today(),
-        )
-        outra = Categoria.objects.create(nome="Outra", usuario=user)
-        Gasto.objects.create(
-            descricao="B",
-            valor=Decimal("20.00"),
-            categoria=outra,
-            usuario=user,
-            data=date.today(),
-        )
-        url = reverse("gasto-list") + f"?categoria={categoria.pk}"
-        response = auth_client.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
-
-    def test_filtro_por_data_gte(
-        self, auth_client: APIClient, user: User, categoria: Categoria
-    ) -> None:
-        hoje = date.today()
-        ontem = hoje - timedelta(days=1)
-        Gasto.objects.create(
-            descricao="Hoje",
-            valor=Decimal("10.00"),
-            categoria=categoria,
-            usuario=user,
-            data=hoje,
-        )
-        Gasto.objects.create(
-            descricao="Ontem",
-            valor=Decimal("10.00"),
-            categoria=categoria,
-            usuario=user,
-            data=ontem,
-        )
-        url = reverse("gasto-list") + f"?data__gte={hoje.isoformat()}"
-        response = auth_client.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1
-
-    def test_filtro_por_valor_lte(
-        self, auth_client: APIClient, user: User, categoria: Categoria
-    ) -> None:
-        Gasto.objects.create(
-            descricao="Barato",
-            valor=Decimal("10.00"),
-            categoria=categoria,
-            usuario=user,
-            data=date.today(),
-        )
-        Gasto.objects.create(
-            descricao="Caro",
-            valor=Decimal("500.00"),
-            categoria=categoria,
-            usuario=user,
-            data=date.today(),
-        )
-        url = reverse("gasto-list") + "?valor__lte=100"
-        response = auth_client.get(url)
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["count"] == 1

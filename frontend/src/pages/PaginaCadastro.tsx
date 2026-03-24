@@ -9,6 +9,9 @@ import {
     type Categoria,
     type Fonte,
 } from "../api/financas";
+import { FormularioGasto } from "../components/formularios/FormularioGasto";
+import { FormularioEntrada } from "../components/formularios/FormularioEntrada";
+import { FormularioCategoriaFonte } from "../components/formularios/FormularioCategoriaFonte";
 
 type Tab = "gasto" | "entrada" | "categoria" | "fonte";
 
@@ -19,33 +22,6 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: "fonte", label: "Fonte", icon: "🏦" },
 ];
 
-function SuccessMessage({ message }: { message: string }): JSX.Element {
-    return (
-        <p style={{ color: "#22c55e" }} className="text-sm text-center mt-2">
-            {message}
-        </p>
-    );
-}
-
-function ErrorMessage({ message }: { message: string }): JSX.Element {
-    return <p className="text-red-400 text-sm text-center mt-2">{message}</p>;
-}
-
-function inputStyle(): React.CSSProperties {
-    return {
-        backgroundColor: "#0f3460",
-        border: "1px solid #1e3a5f",
-        color: "#f1f5f9",
-    };
-}
-
-function labelStyle(): React.CSSProperties {
-    return { color: "#94a3b8" };
-}
-
-const INPUT_CLASS =
-    "rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-green-500 w-full";
-
 export default function PaginaCadastro(): JSX.Element {
     const [activeTab, setActiveTab] = useState<Tab>("gasto");
     const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -53,22 +29,6 @@ export default function PaginaCadastro(): JSX.Element {
     const [success, setSuccess] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-
-    const [gastoDescricao, setGastoDescricao] = useState("");
-    const [gastoValor, setGastoValor] = useState("");
-    const [gastoData, setGastoData] = useState(
-        new Date().toISOString().slice(0, 10),
-    );
-    const [gastoCategoria, setGastoCategoria] = useState("");
-
-    const [entradaDescricao, setEntradaDescricao] = useState("");
-    const [entradaValor, setEntradaValor] = useState("");
-    const [entradaData, setEntradaData] = useState(
-        new Date().toISOString().slice(0, 10),
-    );
-    const [entradaFonte, setEntradaFonte] = useState("");
-
-    const [nomeSimples, setNomeSimples] = useState("");
 
     useEffect(() => {
         void getCategorias().then(({ data }) => {
@@ -98,19 +58,21 @@ export default function PaginaCadastro(): JSX.Element {
         setLoading(false);
     }
 
-    async function handleGasto(e: React.SyntheticEvent): Promise<void> {
-        e.preventDefault();
+    async function handleGasto(
+        descricao: string,
+        valor: string,
+        data: string,
+        categoria: string,
+    ): Promise<void> {
         reset();
         setLoading(true);
         try {
             await createGasto({
-                descricao: gastoDescricao,
-                valor: gastoValor,
-                data: gastoData,
-                categoria: Number(gastoCategoria),
+                descricao,
+                valor,
+                data,
+                categoria: Number(categoria),
             });
-            setGastoDescricao("");
-            setGastoValor("");
             setSuccess("Gasto registrado com sucesso!");
         } catch (err) {
             handleApiError(err);
@@ -119,19 +81,21 @@ export default function PaginaCadastro(): JSX.Element {
         }
     }
 
-    async function handleEntrada(e: React.SyntheticEvent): Promise<void> {
-        e.preventDefault();
+    async function handleEntrada(
+        descricao: string,
+        valor: string,
+        data: string,
+        fonte: string,
+    ): Promise<void> {
         reset();
         setLoading(true);
         try {
             await createEntrada({
-                descricao: entradaDescricao,
-                valor: entradaValor,
-                data: entradaData,
-                fonte: Number(entradaFonte),
+                descricao,
+                valor,
+                data,
+                fonte: Number(fonte),
             });
-            setEntradaDescricao("");
-            setEntradaValor("");
             setSuccess("Entrada registrada com sucesso!");
         } catch (err) {
             handleApiError(err);
@@ -140,14 +104,12 @@ export default function PaginaCadastro(): JSX.Element {
         }
     }
 
-    async function handleCategoria(e: React.SyntheticEvent): Promise<void> {
-        e.preventDefault();
+    async function handleCategoria(nome: string): Promise<void> {
         reset();
         setLoading(true);
         try {
-            const { data } = await createCategoria(nomeSimples);
+            const { data } = await createCategoria(nome);
             setCategorias((prev) => [...prev, data]);
-            setNomeSimples("");
             setSuccess("Categoria criada com sucesso!");
         } catch (err) {
             handleApiError(err);
@@ -156,14 +118,12 @@ export default function PaginaCadastro(): JSX.Element {
         }
     }
 
-    async function handleFonte(e: React.SyntheticEvent): Promise<void> {
-        e.preventDefault();
+    async function handleFonte(nome: string): Promise<void> {
         reset();
         setLoading(true);
         try {
-            const { data } = await createFonte(nomeSimples);
+            const { data } = await createFonte(nome);
             setFontes((prev) => [...prev, data]);
-            setNomeSimples("");
             setSuccess("Fonte criada com sucesso!");
         } catch (err) {
             handleApiError(err);
@@ -188,7 +148,6 @@ export default function PaginaCadastro(): JSX.Element {
                         onClick={() => {
                             setActiveTab(tab.id);
                             reset();
-                            setNomeSimples("");
                         }}
                         style={{
                             backgroundColor:
@@ -213,285 +172,46 @@ export default function PaginaCadastro(): JSX.Element {
                 className="rounded-xl p-6 shadow max-w-lg"
             >
                 {activeTab === "gasto" && (
-                    <form
-                        onSubmit={(e) => {
-                            void handleGasto(e);
+                    <FormularioGasto
+                        categorias={categorias}
+                        loading={loading}
+                        success={success}
+                        error={error}
+                        onSubmit={(descricao, valor, data, categoria) => {
+                            void handleGasto(
+                                descricao,
+                                valor,
+                                data,
+                                categoria,
+                            );
                         }}
-                        className="flex flex-col gap-4"
-                    >
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="gasto-descricao"
-                                style={labelStyle()}
-                                className="text-sm"
-                            >
-                                Descrição
-                            </label>
-                            <input
-                                id="gasto-descricao"
-                                style={inputStyle()}
-                                className={INPUT_CLASS}
-                                value={gastoDescricao}
-                                onChange={(e) => {
-                                    setGastoDescricao(e.target.value);
-                                }}
-                                required
-                                placeholder="Ex: Mercado"
-                            />
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                    htmlFor="gasto-valor"
-                                    style={labelStyle()}
-                                    className="text-sm"
-                                >
-                                    Valor (R$)
-                                </label>
-                                <input
-                                    id="gasto-valor"
-                                    style={inputStyle()}
-                                    className={INPUT_CLASS}
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    value={gastoValor}
-                                    onChange={(e) => {
-                                        setGastoValor(e.target.value);
-                                    }}
-                                    required
-                                    placeholder="0,00"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                    htmlFor="gasto-data"
-                                    style={labelStyle()}
-                                    className="text-sm"
-                                >
-                                    Data
-                                </label>
-                                <input
-                                    id="gasto-data"
-                                    style={inputStyle()}
-                                    className={INPUT_CLASS}
-                                    type="date"
-                                    value={gastoData}
-                                    onChange={(e) => {
-                                        setGastoData(e.target.value);
-                                    }}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="gasto-categoria"
-                                style={labelStyle()}
-                                className="text-sm"
-                            >
-                                Categoria
-                            </label>
-                            <select
-                                id="gasto-categoria"
-                                style={inputStyle()}
-                                className={INPUT_CLASS}
-                                value={gastoCategoria}
-                                onChange={(e) => {
-                                    setGastoCategoria(e.target.value);
-                                }}
-                                required
-                            >
-                                <option value="">Selecione...</option>
-                                {categorias.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.nome}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {success && <SuccessMessage message={success} />}
-                        {error && <ErrorMessage message={error} />}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#22c55e",
-                                color: "#0f3460",
-                            }}
-                            className="rounded-lg py-2 font-semibold text-sm hover:opacity-80 disabled:opacity-50 transition-opacity"
-                        >
-                            {loading ? "Salvando..." : "Registrar Gasto"}
-                        </button>
-                    </form>
+                    />
                 )}
 
                 {activeTab === "entrada" && (
-                    <form
-                        onSubmit={(e) => {
-                            void handleEntrada(e);
+                    <FormularioEntrada
+                        fontes={fontes}
+                        loading={loading}
+                        success={success}
+                        error={error}
+                        onSubmit={(descricao, valor, data, fonte) => {
+                            void handleEntrada(descricao, valor, data, fonte);
                         }}
-                        className="flex flex-col gap-4"
-                    >
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="entrada-descricao"
-                                style={labelStyle()}
-                                className="text-sm"
-                            >
-                                Descrição
-                            </label>
-                            <input
-                                id="entrada-descricao"
-                                style={inputStyle()}
-                                className={INPUT_CLASS}
-                                value={entradaDescricao}
-                                onChange={(e) => {
-                                    setEntradaDescricao(e.target.value);
-                                }}
-                                required
-                                placeholder="Ex: Salário"
-                            />
-                        </div>
-                        <div className="flex gap-3">
-                            <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                    htmlFor="entrada-valor"
-                                    style={labelStyle()}
-                                    className="text-sm"
-                                >
-                                    Valor (R$)
-                                </label>
-                                <input
-                                    id="entrada-valor"
-                                    style={inputStyle()}
-                                    className={INPUT_CLASS}
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    value={entradaValor}
-                                    onChange={(e) => {
-                                        setEntradaValor(e.target.value);
-                                    }}
-                                    required
-                                    placeholder="0,00"
-                                />
-                            </div>
-                            <div className="flex flex-col gap-1 flex-1">
-                                <label
-                                    htmlFor="entrada-data"
-                                    style={labelStyle()}
-                                    className="text-sm"
-                                >
-                                    Data
-                                </label>
-                                <input
-                                    id="entrada-data"
-                                    style={inputStyle()}
-                                    className={INPUT_CLASS}
-                                    type="date"
-                                    value={entradaData}
-                                    onChange={(e) => {
-                                        setEntradaData(e.target.value);
-                                    }}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="entrada-fonte"
-                                style={labelStyle()}
-                                className="text-sm"
-                            >
-                                Fonte
-                            </label>
-                            <select
-                                id="entrada-fonte"
-                                style={inputStyle()}
-                                className={INPUT_CLASS}
-                                value={entradaFonte}
-                                onChange={(e) => {
-                                    setEntradaFonte(e.target.value);
-                                }}
-                                required
-                            >
-                                <option value="">Selecione...</option>
-                                {fontes.map((f) => (
-                                    <option key={f.id} value={f.id}>
-                                        {f.nome}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {success && <SuccessMessage message={success} />}
-                        {error && <ErrorMessage message={error} />}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#22c55e",
-                                color: "#0f3460",
-                            }}
-                            className="rounded-lg py-2 font-semibold text-sm hover:opacity-80 disabled:opacity-50 transition-opacity"
-                        >
-                            {loading ? "Salvando..." : "Registrar Entrada"}
-                        </button>
-                    </form>
+                    />
                 )}
 
                 {(activeTab === "categoria" || activeTab === "fonte") && (
-                    <form
-                        onSubmit={(e) => {
+                    <FormularioCategoriaFonte
+                        activeTab={activeTab}
+                        loading={loading}
+                        success={success}
+                        error={error}
+                        onSubmit={(nome) => {
                             void (activeTab === "categoria"
-                                ? handleCategoria(e)
-                                : handleFonte(e));
+                                ? handleCategoria(nome)
+                                : handleFonte(nome));
                         }}
-                        className="flex flex-col gap-4"
-                    >
-                        <div className="flex flex-col gap-1">
-                            <label
-                                htmlFor="nome-simples"
-                                style={labelStyle()}
-                                className="text-sm"
-                            >
-                                Nome da{" "}
-                                {activeTab === "categoria"
-                                    ? "Categoria"
-                                    : "Fonte"}
-                            </label>
-                            <input
-                                id="nome-simples"
-                                style={inputStyle()}
-                                className={INPUT_CLASS}
-                                value={nomeSimples}
-                                onChange={(e) => {
-                                    setNomeSimples(e.target.value);
-                                }}
-                                required
-                                placeholder={
-                                    activeTab === "categoria"
-                                        ? "Ex: Alimentação"
-                                        : "Ex: Nubank"
-                                }
-                            />
-                        </div>
-                        {success && <SuccessMessage message={success} />}
-                        {error && <ErrorMessage message={error} />}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                backgroundColor: "#22c55e",
-                                color: "#0f3460",
-                            }}
-                            className="rounded-lg py-2 font-semibold text-sm hover:opacity-80 disabled:opacity-50 transition-opacity"
-                        >
-                            {loading
-                                ? "Salvando..."
-                                : `Criar ${activeTab === "categoria" ? "Categoria" : "Fonte"}`}
-                        </button>
-                    </form>
+                    />
                 )}
             </div>
         </div>
