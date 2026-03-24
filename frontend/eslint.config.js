@@ -71,13 +71,9 @@ export default defineConfig([
                 "error",
                 { max: 500, skipComments: true, skipBlankLines: true },
             ],
-            // Clean Code regra 7: tamanho de funcoes
-            // TSX: 50 linhas (JSX e verboso por natureza)
-            // TS puro: 20 linhas (logica sem JSX — regra estrita)
-            "max-lines-per-function": [
-                "error",
-                { max: 50, skipComments: true, skipBlankLines: true },
-            ],
+            // Clean Code regra 7: complexidade ciclomatica (equivalente ao xenon do backend)
+            // Grau B do xenon = complexidade <= 10
+            "complexity": ["error", 10],
         },
     },
 ]);
