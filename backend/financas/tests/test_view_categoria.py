@@ -62,6 +62,11 @@ def categoria(user: User) -> Categoria:
     return Categoria.objects.create(nome="Alimentação", usuario=user)
 
 
+@pytest.fixture
+def fonte(user: User) -> Fonte:
+    return Fonte.objects.create(nome="Salário", usuario=user)
+
+
 # ---------------------------------------------------------------------------
 # Categoria
 # ---------------------------------------------------------------------------
@@ -202,12 +207,10 @@ class TestCategoriaFonteSemPaginacao:
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_fontes_retorna_lista_plana(self, auth_client: APIClient) -> None:
+    def test_fontes_retorna_lista_plana(
+        self, auth_client: APIClient, fonte: Fonte
+    ) -> None:
         # Regressão: deve ser lista, não dict paginado {count, results}.
-        Fonte.objects.create(
-            nome="Salário",
-            usuario=User.objects.get(username="testuser"),
-        )
         response = auth_client.get(reverse("fonte-list"))
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
