@@ -103,7 +103,7 @@ Emojis disponiveis:
 
 ## 7. Clean Code (Tamanho e Responsabilidade)
 
-Baseado no livro Clean Code de Robert C. Martin. Estas regras se aplicam a todo codigo do projeto (Python e TypeScript).
+Baseado no livro Clean Code de Robert C. Martin. Estas regras se aplicam a todo codigo do projeto.
 
 ### Tamanho de arquivos
 
