@@ -26,3 +26,42 @@ backend/site/
 
 # Claude Code — configurações locais da ferramenta
 .claude/
+
+# Frontend (Node.js / pnpm)
+node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/.vitest/
+frontend/.husky/_/
+
+# Testes e cache
+.pytest_cache/
+.vitest/
+.ruff_cache/
+
+# IDEs e editores
+.idea/
+*.swp
+*.swo
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+pnpm-debug.log*
+npm-debug.log*
+backend/logs/
+
+# Django — arquivos gerados em runtime
+backend/media/
+
+# TypeScript — cache incremental de build
+*.tsbuildinfo
+
+# Variáveis de ambiente locais
+*.local
+
+# Backups de editores
+*.bak

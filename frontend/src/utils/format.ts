@@ -1,4 +1,4 @@
-export function formatBRL(value: string): string {
+export function formatarBRL(value: string): string {
     return Number(value).toLocaleString("pt-BR", {
         style: "currency",
         currency: "BRL",

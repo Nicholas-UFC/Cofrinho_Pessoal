@@ -1,7 +1,7 @@
 import { useState, type JSX } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import TopBar from "./TopBar";
+import MenuLateral from "./MenuLateral";
+import BarraTopo from "./BarraTopo";
 
 export default function Layout(): JSX.Element {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,7 +20,7 @@ export default function Layout(): JSX.Element {
                 />
             )}
 
-            <Sidebar
+            <MenuLateral
                 open={sidebarOpen}
                 onClose={() => {
                     setSidebarOpen(false);
@@ -28,7 +28,7 @@ export default function Layout(): JSX.Element {
             />
 
             <div className="flex flex-col flex-1 overflow-hidden">
-                <TopBar
+                <BarraTopo
                     onMenuClick={() => {
                         setSidebarOpen((prev) => !prev);
                     }}
