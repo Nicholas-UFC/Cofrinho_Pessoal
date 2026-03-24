@@ -87,4 +87,23 @@ describe("MenuLateral — mobile", () => {
         await userEvent.click(screen.getByText("Dashboard"));
         expect(onClose).toHaveBeenCalled();
     });
+
+    it("aplica -translate-x-full quando fechado (drawer escondido no mobile)", () => {
+        localStorage.setItem("access", makeFakeToken());
+        renderWithProviders(<MenuLateral open={false} onClose={vi.fn()} />);
+        const aside = screen.getByRole("complementary", {
+            name: "Menu de navegação",
+        });
+        expect(aside.className).toContain("-translate-x-full");
+    });
+
+    it("aplica translate-x-0 quando aberto (drawer visível no mobile)", () => {
+        localStorage.setItem("access", makeFakeToken());
+        renderWithProviders(<MenuLateral open={true} onClose={vi.fn()} />);
+        const aside = screen.getByRole("complementary", {
+            name: "Menu de navegação",
+        });
+        expect(aside.className).not.toContain("-translate-x-full");
+        expect(aside.className).toContain("translate-x-0");
+    });
 });
