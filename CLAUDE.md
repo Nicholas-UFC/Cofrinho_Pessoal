@@ -100,3 +100,32 @@ Emojis disponiveis:
 - Refatorar sempre que o usuario pedir, sem resistencia.
 - Seguir as convencoes de codigo ja existentes no projeto (Ruff, Bandit, pre-commit).
 - Nao adicionar complexidade desnecessaria — minimalismo e preferido.
+
+## 7. Clean Code (Tamanho e Responsabilidade)
+
+Baseado no livro Clean Code de Robert C. Martin. Estas regras se aplicam a todo codigo do projeto (Python e TypeScript).
+
+### Tamanho de arquivos
+
+- **Ideal: 200-300 linhas** — suficiente para conter uma unica responsabilidade.
+- **Maximo toleravel: 500 linhas** — acima disso e sinal de que o arquivo faz coisas demais.
+- Quando um arquivo ultrapassar 500 linhas, dividi-lo em modulos menores antes de continuar.
+
+### Tamanho de funcoes e metodos
+
+- **Ideal: 5-10 linhas** — funcoes curtas sao mais faceis de testar e entender.
+- **Maximo: 20 linhas** — funcoes longas devem ser quebradas em funcoes menores com nomes descritivos.
+- Regra de ouro: **uma funcao deve fazer uma unica coisa, e faze-la bem**.
+- Se um bloco de codigo precisar de comentario para ser entendido, extraia-o para uma funcao com nome claro.
+
+### Responsabilidade de classes
+
+- Cada classe deve ter **uma unica razao para mudar** (SRP — Single Responsibility Principle).
+- Quanto mais variaveis de instancia, mais a classe provavelmente esta fazendo coisas demais.
+- Metodos devem ser pequenos e coesos entre si.
+
+### Regra do escoteiro
+
+> "Deixe o codigo mais limpo do que voce encontrou."
+
+Ao editar qualquer arquivo, corrija pequenas sujeiras que estiver vendo (nomes ruins, funcoes longas, codigo duplicado) — mesmo que nao sejam o foco da tarefa.
