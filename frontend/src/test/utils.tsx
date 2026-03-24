@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { render, type RenderResult } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { AuthProvider } from "../context/AuthContext";
+import { ProvedorAutenticacao } from "../context/ContextoAutenticacao";
 
 export function renderWithProviders(
     ui: ReactNode,
@@ -9,7 +9,7 @@ export function renderWithProviders(
 ): RenderResult {
     return render(
         <MemoryRouter initialEntries={initialEntries}>
-            <AuthProvider>{ui}</AuthProvider>
+            <ProvedorAutenticacao>{ui}</ProvedorAutenticacao>
         </MemoryRouter>,
     );
 }

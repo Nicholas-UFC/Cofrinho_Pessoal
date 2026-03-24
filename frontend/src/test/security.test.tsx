@@ -5,13 +5,13 @@ import { renderWithProviders } from "./utils";
 import { makeFakeToken, makeExpiredToken } from "./handlers";
 import { server } from "./server";
 import type { JSX } from "react";
-import { useAuth } from "../context/useAuth";
+import { useAutenticacao } from "../context/useAutenticacao";
 
 // ──────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────
 function AuthDisplay(): JSX.Element {
-    const { isAuthenticated, isAdmin } = useAuth();
+    const { isAuthenticated, isAdmin } = useAutenticacao();
     return (
         <div>
             <span data-testid="auth">
@@ -52,7 +52,7 @@ describe("Segurança — tokens", () => {
         localStorage.setItem("refresh", "fake-refresh");
 
         function LogoutButton(): JSX.Element {
-            const { logout } = useAuth();
+            const { logout } = useAutenticacao();
             return <button onClick={logout}>Sair</button>;
         }
 
@@ -124,10 +124,10 @@ describe("Segurança — XSS", () => {
             ),
         );
 
-        const { default: HistoricoPage } =
-            await import("../pages/HistoricoPage");
+        const { default: PaginaHistorico } =
+            await import("../pages/PaginaHistorico");
 
-        renderWithProviders(<HistoricoPage />);
+        renderWithProviders(<PaginaHistorico />);
 
         await waitFor(() => {
             // O texto bruto deve aparecer — não executado como HTML
@@ -152,7 +152,7 @@ describe("Segurança — acesso admin", () => {
         localStorage.setItem("access", makeFakeToken(false));
 
         function TopBarMock(): JSX.Element {
-            const { isAdmin } = useAuth();
+            const { isAdmin } = useAutenticacao();
             return (
                 <div>
                     {isAdmin && <a href="/admin/">Painel Admin</a>}
@@ -169,7 +169,7 @@ describe("Segurança — acesso admin", () => {
         localStorage.setItem("access", makeFakeToken(true));
 
         function TopBarMock(): JSX.Element {
-            const { isAdmin } = useAuth();
+            const { isAdmin } = useAutenticacao();
             return <div>{isAdmin && <a href="/admin/">Painel Admin</a>}</div>;
         }
 

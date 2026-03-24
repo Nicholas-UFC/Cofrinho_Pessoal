@@ -90,27 +90,27 @@ class EntradaViewSet(ModelViewSet):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def resumo(request: Request) -> Response:
-    user = request.user
+    usuario = request.user
 
     # Coalesce garante 0 quando não há registros, em vez de None.
-    zero = Coalesce(
+    soma_ou_zero = Coalesce(
         Sum("valor"),
         0,
         output_field=DecimalField(max_digits=10, decimal_places=2),
     )
 
-    total_entradas = Entrada.objects.filter(usuario=user).aggregate(
-        total=zero
+    total_entradas = Entrada.objects.filter(usuario=usuario).aggregate(
+        total=soma_ou_zero
     )["total"]
-    total_gastos = Gasto.objects.filter(usuario=user).aggregate(total=zero)[
-        "total"
-    ]
+    total_gastos = Gasto.objects.filter(usuario=usuario).aggregate(
+        total=soma_ou_zero
+    )["total"]
 
     # Agrupa gastos do usuário por nome da categoria e soma os valores.
     gastos_por_categoria = list(
-        Gasto.objects.filter(usuario=user)
+        Gasto.objects.filter(usuario=usuario)
         .values("categoria__nome")
-        .annotate(total=zero)
+        .annotate(total=soma_ou_zero)
         .order_by("categoria__nome")
     )
 

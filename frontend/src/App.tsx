@@ -1,29 +1,32 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./components/PrivateRoute";
+import { ProvedorAutenticacao } from "./context/ContextoAutenticacao";
+import RotaPrivada from "./components/RotaPrivada";
 import Layout from "./components/Layout";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import CadastroPage from "./pages/CadastroPage";
-import HistoricoPage from "./pages/HistoricoPage";
+import PaginaLogin from "./pages/PaginaLogin";
+import PaginaPainel from "./pages/PaginaPainel";
+import PaginaCadastro from "./pages/PaginaCadastro";
+import PaginaHistorico from "./pages/PaginaHistorico";
 import type { JSX } from "react";
 
 export default function App(): JSX.Element {
     return (
-        <AuthProvider>
+        <ProvedorAutenticacao>
             <BrowserRouter>
                 <Routes>
-                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/login" element={<PaginaLogin />} />
                     <Route
                         element={
-                            <PrivateRoute>
+                            <RotaPrivada>
                                 <Layout />
-                            </PrivateRoute>
+                            </RotaPrivada>
                         }
                     >
-                        <Route path="/dashboard" element={<DashboardPage />} />
-                        <Route path="/cadastro" element={<CadastroPage />} />
-                        <Route path="/historico" element={<HistoricoPage />} />
+                        <Route path="/dashboard" element={<PaginaPainel />} />
+                        <Route path="/cadastro" element={<PaginaCadastro />} />
+                        <Route
+                            path="/historico"
+                            element={<PaginaHistorico />}
+                        />
                     </Route>
                     <Route
                         path="*"
@@ -31,6 +34,6 @@ export default function App(): JSX.Element {
                     />
                 </Routes>
             </BrowserRouter>
-        </AuthProvider>
+        </ProvedorAutenticacao>
     );
 }

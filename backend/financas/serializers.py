@@ -23,18 +23,18 @@ class CategoriaSerializer(serializers.ModelSerializer):
         exclude: ClassVar = ["usuario"]
         read_only_fields: ClassVar = ["id", "criado_em"]
 
-    def validate_nome(self, value: str) -> str:
+    def validate_nome(self, valor: str) -> str:
         # Garante unicidade do nome por usuário a nível de serializer,
         # já que usuario é excluído e o UniqueTogetherValidator não atua.
-        user = self.context["request"].user
-        qs = Categoria.objects.filter(usuario=user, nome=value)
+        usuario = self.context["request"].user
+        registros = Categoria.objects.filter(usuario=usuario, nome=valor)
         if self.instance:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
+            registros = registros.exclude(pk=self.instance.pk)
+        if registros.exists():
             raise serializers.ValidationError(
                 "Você já possui uma categoria com este nome."
             )
-        return value
+        return valor
 
 
 # Serializer da tabela de fontes de renda.
@@ -44,17 +44,17 @@ class FonteSerializer(serializers.ModelSerializer):
         exclude: ClassVar = ["usuario"]
         read_only_fields: ClassVar = ["id", "criado_em"]
 
-    def validate_nome(self, value: str) -> str:
+    def validate_nome(self, valor: str) -> str:
         # Garante unicidade do nome por usuário a nível de serializer.
-        user = self.context["request"].user
-        qs = Fonte.objects.filter(usuario=user, nome=value)
+        usuario = self.context["request"].user
+        registros = Fonte.objects.filter(usuario=usuario, nome=valor)
         if self.instance:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
+            registros = registros.exclude(pk=self.instance.pk)
+        if registros.exists():
             raise serializers.ValidationError(
                 "Você já possui uma fonte com este nome."
             )
-        return value
+        return valor
 
 
 # Serializer da tabela de gastos.
