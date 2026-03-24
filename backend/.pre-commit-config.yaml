@@ -13,3 +13,26 @@ repos:
       - id: bandit
         args: ["-c", "backend/pyproject.toml"]
         additional_dependencies: ["bandit[toml]"]
+
+  - repo: local
+    hooks:
+      - id: check-file-length
+        name: check-file-length (max 500 linhas — Clean Code regra 7)
+        entry: uv run python backend/scripts/check_file_length.py
+        language: system
+        types: [python]
+
+      - id: xenon
+        name: xenon (complexidade ciclomatica)
+        entry: uv run xenon
+        language: system
+        args:
+          - --max-absolute
+          - B
+          - --max-modules
+          - A
+          - --max-average
+          - A
+          - backend/financas/
+        pass_filenames: false
+        types: [python]

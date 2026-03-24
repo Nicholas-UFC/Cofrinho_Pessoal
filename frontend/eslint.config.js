@@ -66,6 +66,18 @@ export default defineConfig([
             "react/react-in-jsx-scope": "off",
             // setState in effects is a common valid pattern (loading indicators)
             "react-hooks/set-state-in-effect": "off",
+            // Clean Code regra 7: tamanho de arquivos (max 500 linhas)
+            "max-lines": [
+                "error",
+                { max: 500, skipComments: true, skipBlankLines: true },
+            ],
+            // Clean Code regra 7: tamanho de funcoes
+            // TSX: 50 linhas (JSX e verboso por natureza)
+            // TS puro: 20 linhas (logica sem JSX — regra estrita)
+            "max-lines-per-function": [
+                "error",
+                { max: 50, skipComments: true, skipBlankLines: true },
+            ],
         },
     },
 ]);

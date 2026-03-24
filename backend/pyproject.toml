@@ -46,6 +46,7 @@ dev = [
     "mkdocs-material>=9.7.5",
     "pytest-django>=4.12.0",
     "pytest-cov>=6.0",
+    "xenon>=0.9.3",
 ]
 
 [tool.ruff]
