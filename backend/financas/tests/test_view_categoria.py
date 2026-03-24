@@ -4,8 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from financas.models import Categoria, Entrada, Fonte, Gasto
-
+from financas.models import Categoria, Fonte
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -203,11 +202,9 @@ class TestCategoriaFonteSemPaginacao:
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
-    def test_fontes_retorna_lista_plana(
-        self, auth_client: APIClient
-    ) -> None:
+    def test_fontes_retorna_lista_plana(self, auth_client: APIClient) -> None:
         # Regressão: deve ser lista, não dict paginado {count, results}.
-        fonte = Fonte.objects.create(
+        Fonte.objects.create(
             nome="Salário",
             usuario=User.objects.get(username="testuser"),
         )

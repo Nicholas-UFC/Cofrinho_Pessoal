@@ -11,9 +11,11 @@ SKIP_COMMENTS = True
 def contar_linhas(path: Path) -> int:
     linhas = path.read_text(encoding="utf-8").splitlines()
     if SKIP_BLANK:
-        linhas = [l for l in linhas if l.strip()]
+        linhas = [linha for linha in linhas if linha.strip()]
     if SKIP_COMMENTS:
-        linhas = [l for l in linhas if not l.strip().startswith("#")]
+        linhas = [
+            linha for linha in linhas if not linha.strip().startswith("#")
+        ]
     return len(linhas)
 
 
