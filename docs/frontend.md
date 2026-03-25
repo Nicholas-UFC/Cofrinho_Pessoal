@@ -17,6 +17,7 @@ Interface web do Cofrinho Pessoal, construída com React 19 e TypeScript.
 | React Router v6   | Roteamento client-side                  |
 | Axios             | Requisições HTTP com interceptors JWT   |
 | jwt-decode        | Leitura do payload do token             |
+| Recharts          | Gráficos interativos (barras, linha)    |
 | ESLint + Prettier | Linting e formatação                    |
 | Husky + lint-staged | Pre-commit automático                 |
 | Vitest            | Test runner                             |
@@ -34,11 +35,20 @@ após login bem-sucedido.
 
 ### Dashboard (`/dashboard`)
 
-Resumo financeiro com três cards:
+Resumo financeiro com três cards e quatro gráficos interativos:
 
 - **Saldo** — diferença entre entradas e gastos
 - **Entradas** — total de receitas do usuário
 - **Gastos** — total de despesas do usuário
+
+Gráficos (Recharts):
+
+| Gráfico                  | Tipo          | Descrição                              |
+|--------------------------|---------------|----------------------------------------|
+| Entradas vs Gastos       | Barras        | Comparação dos totais                  |
+| Evolução mensal          | Linha         | Últimos 3 meses                        |
+| Gastos por categoria     | Barras horiz. | Distribuição por categoria             |
+| Entradas por fonte       | Barras horiz. | Distribuição por fonte de renda        |
 
 Consumido pelo endpoint `GET /api/financas/resumo/`.
 
@@ -60,6 +70,15 @@ e entradas. Exibe data, descrição, categoria/fonte e valor.
 
 ---
 
+## Layout responsivo
+
+O layout adapta-se ao tamanho da tela:
+
+- **Desktop** — menu lateral sempre visível
+- **Mobile** — menu oculto por padrão; botão hambúrguer na `BarraTopo` abre um drawer lateral com animação (`translate-x`)
+
+---
+
 ## Autenticação
 
 O token JWT é armazenado no `localStorage` (`access` e `refresh`).
@@ -67,7 +86,7 @@ O token JWT é armazenado no `localStorage` (`access` e `refresh`).
 - Toda requisição recebe o header `Authorization: Bearer <token>` via interceptor do Axios.
 - Em caso de resposta `401`, o Axios tenta renovar o token via `POST /api/token/refresh/`.
 - Se a renovação falhar, os tokens são removidos e o usuário é redirecionado para `/login`.
-- O `AuthContext` lê o token ao carregar a página, valida a expiração e restaura a sessão.
+- O `ContextoAutenticacao` lê o token ao carregar a página, valida a expiração e restaura a sessão.
 
 ---
 
@@ -94,12 +113,15 @@ pnpm vitest           # modo watch
 
 Os testes cobrem:
 
-- `AuthContext` — estado inicial, login, logout, token expirado
-- `PrivateRoute` — redirecionamento sem autenticação
-- `TopBar` — exibição do usuário, dropdown, link de admin
-- `Sidebar` — links de navegação, logout
-- `LoginPage` — renderização, redirecionamento, erros
-- `DashboardPage` — loading, cards, cores, erro de API
-- `CadastroPage` — abas, formulários, sucesso, erros
-- `HistoricoPage` — lista, troca de aba, paginação, vazio, erro
+- `ContextoAutenticacao` — estado inicial, login, logout, token expirado, is_staff
+- `RotaPrivada` — redirecionamento sem autenticação, token inválido
+- `BarraTopo` — exibição do usuário, dropdown, botão hambúrguer, link de admin
+- `MenuLateral` — links de navegação, logout, drawer mobile (aberto/fechado)
+- `FormularioGasto` — campos, submit, limpeza pós-submit, loading, mensagens
+- `FormularioEntrada` — campos, submit, limpeza pós-submit, loading, mensagens
+- `FormularioCategoriaFonte` — aba categoria vs fonte, submit, loading, mensagens
+- `PaginaLogin` — renderização, redirecionamento, erros, estado "Entrando..."
+- `PaginaPainel` — loading, cards, cores do saldo, gráficos, erro de API
+- `PaginaCadastro` — abas, formulários, sucesso, erros, regressão paginação
+- `PaginaHistorico` — lista, troca de aba, paginação, vazio, erro
 - Testes de segurança — token expirado, token malformado, XSS, logout, 401
