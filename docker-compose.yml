@@ -49,5 +49,23 @@ services:
     depends_on:
       - backend
 
+  waha:
+    image: devlikeapro/waha
+    container_name: cofrinho_waha
+    environment:
+      WHATSAPP_DEFAULT_ENGINE: NOWEB
+      WHATSAPP_API_KEY: ${WAHA_API_KEY}
+      WHATSAPP_HOOK_URL: http://backend:8000/api/whatsapp/webhook/
+      WHATSAPP_HOOK_EVENTS: message
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - waha_data:/app/.sessions
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
+  waha_data:
