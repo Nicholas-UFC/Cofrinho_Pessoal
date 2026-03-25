@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 
 from financas.models import Categoria, Entrada, Fonte, Gasto, LogAuditoria
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -75,7 +74,9 @@ def test_delecao_gasto_gera_log(user: User, categoria: Categoria) -> None:
     gasto_id = gasto.pk
     gasto.delete()
 
-    log = LogAuditoria.objects.get(modelo="Gasto", objeto_id=gasto_id, acao="deletado")
+    log = LogAuditoria.objects.get(
+        modelo="Gasto", objeto_id=gasto_id, acao="deletado"
+    )
     assert log.acao == "deletado"
 
 
@@ -100,6 +101,47 @@ def test_criacao_entrada_gera_log(user: User, fonte: Fonte) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Entrada — cenarios completos
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_atualizacao_entrada_gera_log(user: User, fonte: Fonte) -> None:
+    entrada = Entrada.objects.create(
+        usuario=user,
+        descricao="Salario",
+        valor=Decimal("3000.00"),
+        fonte=fonte,
+        data=date.today(),
+    )
+    entrada.descricao = "Bonus"
+    entrada.save()
+
+    log = LogAuditoria.objects.filter(
+        modelo="Entrada", objeto_id=entrada.pk, acao="atualizado"
+    ).first()
+    assert log is not None
+
+
+@pytest.mark.django_db
+def test_delecao_entrada_gera_log(user: User, fonte: Fonte) -> None:
+    entrada = Entrada.objects.create(
+        usuario=user,
+        descricao="Salario",
+        valor=Decimal("3000.00"),
+        fonte=fonte,
+        data=date.today(),
+    )
+    entrada_id = entrada.pk
+    entrada.delete()
+
+    log = LogAuditoria.objects.get(
+        modelo="Entrada", objeto_id=entrada_id, acao="deletado"
+    )
+    assert log.acao == "deletado"
+
+
+# ---------------------------------------------------------------------------
 # Categoria
 # ---------------------------------------------------------------------------
 
@@ -110,6 +152,18 @@ def test_criacao_categoria_gera_log(user: User) -> None:
 
     log = LogAuditoria.objects.get(modelo="Categoria", objeto_id=categoria.pk)
     assert log.acao == "criado"
+
+
+@pytest.mark.django_db
+def test_atualizacao_categoria_gera_log(user: User) -> None:
+    categoria = Categoria.objects.create(nome="Lazer", usuario=user)
+    categoria.nome = "Entretenimento"
+    categoria.save()
+
+    log = LogAuditoria.objects.filter(
+        modelo="Categoria", objeto_id=categoria.pk, acao="atualizado"
+    ).first()
+    assert log is not None
 
 
 @pytest.mark.django_db
@@ -137,6 +191,30 @@ def test_criacao_fonte_gera_log(user: User) -> None:
     assert log.acao == "criado"
 
 
+@pytest.mark.django_db
+def test_atualizacao_fonte_gera_log(user: User) -> None:
+    fonte = Fonte.objects.create(nome="Freelance", usuario=user)
+    fonte.nome = "Consultoria"
+    fonte.save()
+
+    log = LogAuditoria.objects.filter(
+        modelo="Fonte", objeto_id=fonte.pk, acao="atualizado"
+    ).first()
+    assert log is not None
+
+
+@pytest.mark.django_db
+def test_delecao_fonte_gera_log(user: User) -> None:
+    fonte = Fonte.objects.create(nome="Freelance", usuario=user)
+    fonte_id = fonte.pk
+    fonte.delete()
+
+    log = LogAuditoria.objects.get(
+        modelo="Fonte", objeto_id=fonte_id, acao="deletado"
+    )
+    assert log.acao == "deletado"
+
+
 # ---------------------------------------------------------------------------
 # Detalhes do log
 # ---------------------------------------------------------------------------
@@ -152,7 +230,9 @@ def test_log_armazena_detalhes(user: User, categoria: Categoria) -> None:
         data=date.today(),
     )
 
-    log = LogAuditoria.objects.get(modelo="Gasto", objeto_id=gasto.pk, acao="criado")
+    log = LogAuditoria.objects.get(
+        modelo="Gasto", objeto_id=gasto.pk, acao="criado"
+    )
     assert "descricao" in log.detalhes
     assert log.detalhes["descricao"] == "Mercado"
 
@@ -166,7 +246,9 @@ def test_log_armazena_detalhes(user: User, categoria: Categoria) -> None:
 def test_criacao_usuario_gera_log(db: None) -> None:
     novo_user = User.objects.create_user(username="novo", password="pass123")
 
-    log = LogAuditoria.objects.get(modelo="User", objeto_id=novo_user.pk, acao="criado")
+    log = LogAuditoria.objects.get(
+        modelo="User", objeto_id=novo_user.pk, acao="criado"
+    )
     assert log.detalhes["username"] == "novo"
 
 
@@ -188,5 +270,19 @@ def test_delecao_usuario_gera_log(user: User) -> None:
     username = user.username
     user.delete()
 
-    log = LogAuditoria.objects.get(modelo="User", objeto_id=user_id, acao="deletado")
+    log = LogAuditoria.objects.get(
+        modelo="User", objeto_id=user_id, acao="deletado"
+    )
     assert log.detalhes["username"] == username
+
+
+# ---------------------------------------------------------------------------
+# Choices validas (regressao — bug: bulk_deletado e bulk_atualizado
+# nao estavam nas choices do model)
+# ---------------------------------------------------------------------------
+
+
+def test_choices_logauditoria_incluem_bulk() -> None:
+    acoes = [choice[0] for choice in LogAuditoria.ACOES]
+    assert "bulk_deletado" in acoes
+    assert "bulk_atualizado" in acoes
