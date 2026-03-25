@@ -9,7 +9,6 @@ from rest_framework.test import APIClient
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

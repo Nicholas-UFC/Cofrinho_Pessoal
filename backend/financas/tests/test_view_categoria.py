@@ -4,8 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from financas.models import Categoria, Entrada, Fonte, Gasto
-
+from financas.models import Categoria, Fonte
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -61,6 +60,11 @@ def outro_client(outro_user: User) -> APIClient:
 @pytest.fixture
 def categoria(user: User) -> Categoria:
     return Categoria.objects.create(nome="Alimentação", usuario=user)
+
+
+@pytest.fixture
+def fonte(user: User) -> Fonte:
+    return Fonte.objects.create(nome="Salário", usuario=user)
 
 
 # ---------------------------------------------------------------------------
@@ -204,13 +208,9 @@ class TestCategoriaFonteSemPaginacao:
         assert isinstance(response.data, list)
 
     def test_fontes_retorna_lista_plana(
-        self, auth_client: APIClient
+        self, auth_client: APIClient, fonte: Fonte
     ) -> None:
         # Regressão: deve ser lista, não dict paginado {count, results}.
-        fonte = Fonte.objects.create(
-            nome="Salário",
-            usuario=User.objects.get(username="testuser"),
-        )
         response = auth_client.get(reverse("fonte-list"))
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)

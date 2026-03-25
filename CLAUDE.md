@@ -129,3 +129,27 @@ Baseado no livro Clean Code de Robert C. Martin. Estas regras se aplicam a todo 
 > "Deixe o codigo mais limpo do que voce encontrou."
 
 Ao editar qualquer arquivo, corrija pequenas sujeiras que estiver vendo (nomes ruins, funcoes longas, codigo duplicado) — mesmo que nao sejam o foco da tarefa.
+
+## 8. Nomenclatura Consistente em Portugues
+
+Todo codigo novo deve usar **portugues** para nomear variaveis, funcoes, classes, metodos e arquivos — com excecao dos casos abaixo.
+
+### Usar portugues
+
+- Variaveis e parametros: `valor`, `data_criacao`, `usuario_logado`
+- Funcoes e metodos: `calcular_total()`, `buscar_categorias()`, `formatar_data()`
+- Classes de dominio: `Gasto`, `Entrada`, `Categoria`, `Fonte`
+- Fixtures de teste: `auth_client`, `outro_usuario`, `gasto_padrao`
+- Componentes React de dominio: `FormularioGasto`, `PaginaHistorico`, `BotoesView`
+
+### Manter em ingles
+
+- Termos tecnicos consagrados: `serializer`, `viewset`, `middleware`, `hook`, `props`, `state`
+- Nomes impostos por frameworks: `Meta`, `queryset`, `perform_create`, `useState`, `useEffect`
+- Variaveis de protocolo/infra: `url`, `token`, `payload`, `response`, `request`
+
+### Nomes proibidos
+
+- Abreviacoes sem sentido: `v`, `c`, `tmp`, `aux`, `x`
+- Traducao literal de ingles que soa estranha: `obterTodos`, `criarNovo`
+- Mistura de idiomas no mesmo nome: `userAtivo`, `getValor`

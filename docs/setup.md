@@ -97,3 +97,13 @@ pnpm vitest run
 cd backend
 uv run pre-commit install
 ```
+
+Os hooks executados a cada commit são:
+
+| Hook                | Ferramenta      | O que verifica                                      |
+|---------------------|-----------------|-----------------------------------------------------|
+| `ruff`              | Ruff            | Linting e auto-correção (PEP8, imports, tipos)      |
+| `ruff-format`       | Ruff            | Formatação do código Python                         |
+| `bandit`            | Bandit          | Vulnerabilidades de segurança                       |
+| `check-file-length` | Script próprio  | Arquivos Python acima de 500 linhas (Clean Code)    |
+| `xenon`             | Xenon           | Complexidade ciclomática (máximo grau B por função) |

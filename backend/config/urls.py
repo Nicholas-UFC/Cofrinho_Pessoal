@@ -1,9 +1,11 @@
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
-
 from financas.serializers import CustomTokenObtainPairSerializer
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -13,7 +15,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 urlpatterns = [
     path("admin/", admin.site.urls),
     # Autenticação JWT — obter e renovar tokens.
-    path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain"),
+    path(
+        "api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain"
+    ),
     path(
         "api/token/refresh/",
         TokenRefreshView.as_view(),

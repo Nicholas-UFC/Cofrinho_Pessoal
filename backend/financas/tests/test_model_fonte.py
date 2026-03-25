@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from financas.models import Entrada, Fonte
 
-
 # ---------------------------------------------------------------------------
 # Fixture de usuário compartilhada
 # ---------------------------------------------------------------------------

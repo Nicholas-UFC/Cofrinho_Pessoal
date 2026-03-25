@@ -7,8 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from financas.models import Categoria, Entrada, Fonte, Gasto
-
+from financas.models import Entrada, Fonte
 
 # ---------------------------------------------------------------------------
 # Fixtures

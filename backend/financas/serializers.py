@@ -1,14 +1,16 @@
 from typing import ClassVar
 
 from rest_framework import serializers
+from rest_framework_simplejwt.models import TokenUser
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import Token
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
-    def get_token(cls, user):  # type: ignore[override]
+    def get_token(cls, user: TokenUser) -> Token:
         token = super().get_token(user)
         token["username"] = user.username
         token["is_staff"] = user.is_staff
@@ -59,7 +61,9 @@ class FonteSerializer(serializers.ModelSerializer):
 
 # Serializer da tabela de gastos.
 class GastoSerializer(serializers.ModelSerializer):
-    categoria_nome = serializers.CharField(source="categoria.nome", read_only=True)
+    categoria_nome = serializers.CharField(
+        source="categoria.nome", read_only=True
+    )
 
     class Meta:
         model = Gasto

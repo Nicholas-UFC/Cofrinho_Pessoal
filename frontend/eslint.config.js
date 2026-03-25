@@ -66,6 +66,14 @@ export default defineConfig([
             "react/react-in-jsx-scope": "off",
             // setState in effects is a common valid pattern (loading indicators)
             "react-hooks/set-state-in-effect": "off",
+            // Clean Code regra 7: tamanho de arquivos (max 500 linhas)
+            "max-lines": [
+                "error",
+                { max: 500, skipComments: true, skipBlankLines: true },
+            ],
+            // Clean Code regra 7: complexidade ciclomatica (equivalente ao xenon do backend)
+            // Grau B do xenon = complexidade <= 10
+            "complexity": ["error", 10],
         },
     },
 ]);
