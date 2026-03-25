@@ -2,6 +2,8 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 
+from financas.models import LogAcesso
+
 
 @pytest.fixture
 def user(db: None) -> User:
@@ -17,7 +19,6 @@ def cliente_autenticado(user: User) -> Client:
 
 @pytest.mark.django_db
 def test_requisicao_anonima_gera_log(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get("/api/gastos/")
 
@@ -31,7 +32,6 @@ def test_requisicao_anonima_gera_log(client: Client) -> None:
 def test_requisicao_autenticada_registra_usuario(
     cliente_autenticado: Client, user: User
 ) -> None:
-    from financas.models import LogAcesso
 
     cliente_autenticado.get("/api/gastos/")
 
@@ -42,7 +42,6 @@ def test_requisicao_autenticada_registra_usuario(
 
 @pytest.mark.django_db
 def test_origem_web_detectada(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get("/api/gastos/", HTTP_REFERER="http://localhost:5173")
 
@@ -53,9 +52,10 @@ def test_origem_web_detectada(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_origem_whatsapp_detectada(client: Client) -> None:
-    from financas.models import LogAcesso
 
-    client.post("/api/whatsapp/webhook/", data={}, content_type="application/json")
+    client.post(
+        "/api/whatsapp/webhook/", data={}, content_type="application/json"
+    )
 
     log = LogAcesso.objects.filter(endpoint="/api/whatsapp/webhook/").first()
     assert log is not None
@@ -64,7 +64,6 @@ def test_origem_whatsapp_detectada(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_dispositivo_mobile_detectado(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get(
         "/api/gastos/",
@@ -78,11 +77,10 @@ def test_dispositivo_mobile_detectado(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_dispositivo_desktop_detectado(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get(
         "/api/gastos/",
-        HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        HTTP_USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
     )
 
     log = LogAcesso.objects.filter(endpoint="/api/gastos/").first()
@@ -92,7 +90,6 @@ def test_dispositivo_desktop_detectado(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_admin_nao_gera_log(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get("/admin/")
 
@@ -101,7 +98,6 @@ def test_admin_nao_gera_log(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_status_code_registrado(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get("/api/gastos/")
 
@@ -112,7 +108,6 @@ def test_status_code_registrado(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_duracao_registrada(client: Client) -> None:
-    from financas.models import LogAcesso
 
     client.get("/api/gastos/")
 

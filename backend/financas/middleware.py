@@ -54,7 +54,7 @@ class MiddlewareLogAcesso:
         response: HttpResponse,
         inicio: float,
     ) -> None:
-        from financas.models import LogAcesso
+        from financas.models import LogAcesso  # noqa: PLC0415
 
         user_agent = request.META.get("HTTP_USER_AGENT", "")
         duracao_ms = int((time.monotonic() - inicio) * 1000)
