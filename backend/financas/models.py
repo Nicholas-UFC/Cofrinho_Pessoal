@@ -10,6 +10,45 @@ from financas.validators import validar_valor_positivo
 _CAMPOS_IMUTAVEIS = {"id", "criado_em"}
 
 
+# QuerySet que audita operações em massa (delete e update).
+class QuerySetAuditavel(models.QuerySet):
+    def delete(self, *args: object, **kwargs: object) -> tuple:
+        from financas.models import LogAuditoria  # noqa: PLC0415
+
+        ids = list(self.values_list("pk", flat=True))
+        modelo = self.model.__name__
+        for objeto_id in ids:
+            LogAuditoria.objects.create(
+                usuario=None,
+                acao="bulk_deletado",
+                modelo=modelo,
+                objeto_id=objeto_id,
+                detalhes={"ids_afetados": ids},
+            )
+        return super().delete(*args, **kwargs)
+
+    def update(self, **kwargs: object) -> int:
+        from financas.models import LogAuditoria  # noqa: PLC0415
+
+        ids = list(self.values_list("pk", flat=True))
+        modelo = self.model.__name__
+        campos_alterados = {k: str(v) for k, v in kwargs.items()}
+        for objeto_id in ids:
+            LogAuditoria.objects.create(
+                usuario=None,
+                acao="bulk_atualizado",
+                modelo=modelo,
+                objeto_id=objeto_id,
+                detalhes={"ids_afetados": ids, "campos": campos_alterados},
+            )
+        return super().update(**kwargs)
+
+
+class ManagerAuditavel(models.Manager):
+    def get_queryset(self) -> QuerySetAuditavel:
+        return QuerySetAuditavel(self.model, using=self._db)
+
+
 # Mixin reutilizável que protege campos imutáveis em qualquer UPDATE.
 # Em vez de sobrescrever save() em cada model, basta herdar deste mixin.
 class CamposImutaveisMixin(models.Model):
@@ -42,6 +81,8 @@ class Categoria(CamposImutaveisMixin):
     nome = models.CharField(max_length=100)
     criado_em = models.DateTimeField(auto_now_add=True)
 
+    objects = ManagerAuditavel()
+
     class Meta:
         ordering: ClassVar = ["nome"]
         verbose_name = "Categoria"
@@ -69,6 +110,8 @@ class Fonte(CamposImutaveisMixin):
     )
     nome = models.CharField(max_length=100)
     criado_em = models.DateTimeField(auto_now_add=True)
+
+    objects = ManagerAuditavel()
 
     class Meta:
         ordering: ClassVar = ["nome"]
@@ -108,6 +151,8 @@ class Gasto(CamposImutaveisMixin):
     )
     data = models.DateField()
     criado_em = models.DateTimeField(auto_now_add=True)
+
+    objects = ManagerAuditavel()
 
     class Meta:
         # Mais recente primeiro na listagem padrão.
@@ -149,6 +194,8 @@ class Entrada(CamposImutaveisMixin):
     data = models.DateField()
     criado_em = models.DateTimeField(auto_now_add=True)
 
+    objects = ManagerAuditavel()
+
     class Meta:
         # Mais recente primeiro na listagem padrão.
         ordering: ClassVar = ["-data"]
@@ -164,3 +211,70 @@ class Entrada(CamposImutaveisMixin):
 
     def __str__(self) -> str:
         return f"{self.descricao} - R$ {self.valor}"
+
+
+# Tabela de auditoria — registra toda ação feita sobre os models principais.
+class LogAuditoria(models.Model):
+    ACOES: ClassVar = [
+        ("criado", "Criado"),
+        ("atualizado", "Atualizado"),
+        ("deletado", "Deletado"),
+    ]
+
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="logs_auditoria",
+    )
+    acao = models.CharField(max_length=20, choices=ACOES)
+    modelo = models.CharField(max_length=50)
+    objeto_id = models.PositiveIntegerField()
+    detalhes = models.JSONField(default=dict)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering: ClassVar = ["-criado_em"]
+        verbose_name = "Log de Auditoria"
+        verbose_name_plural = "Logs de Auditoria"
+
+    def __str__(self) -> str:
+        return f"{self.acao} {self.modelo} #{self.objeto_id}"
+
+
+# Tabela de acesso — registra toda requisição feita ao sistema.
+class LogAcesso(models.Model):
+    ORIGENS: ClassVar = [
+        ("web", "Web"),
+        ("whatsapp", "WhatsApp"),
+        ("mobile", "Mobile"),
+        ("api", "API"),
+    ]
+
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="logs_acesso",
+    )
+    metodo = models.CharField(max_length=10)
+    endpoint = models.CharField(max_length=255)
+    status_code = models.PositiveSmallIntegerField()
+    origem = models.CharField(max_length=20, choices=ORIGENS, default="api")
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, default="")
+    dispositivo = models.CharField(max_length=20, blank=True, default="")
+    duracao_ms = models.PositiveIntegerField(default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering: ClassVar = ["-criado_em"]
+        verbose_name = "Log de Acesso"
+        verbose_name_plural = "Logs de Acesso"
+
+    def __str__(self) -> str:
+        usuario = self.usuario or "anonimo"
+        return (
+            f"{self.metodo} {self.endpoint} [{self.status_code}] — {usuario}"
+        )
