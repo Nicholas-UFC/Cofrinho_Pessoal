@@ -219,6 +219,8 @@ class LogAuditoria(models.Model):
         ("criado", "Criado"),
         ("atualizado", "Atualizado"),
         ("deletado", "Deletado"),
+        ("bulk_deletado", "Bulk Deletado"),
+        ("bulk_atualizado", "Bulk Atualizado"),
     ]
 
     usuario = models.ForeignKey(
