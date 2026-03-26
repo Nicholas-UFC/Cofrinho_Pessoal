@@ -32,4 +32,6 @@ urlpatterns = [
     ),
     # URLs do app financas — definidas em financas/urls.py.
     path("api/financas/", include("financas.urls")),
+    # URLs do app whatsapp — webhook do WAHA.
+    path("api/whatsapp/", include("whatsapp.urls")),
 ]
