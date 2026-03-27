@@ -1,12 +1,39 @@
 import json
 from unittest.mock import patch
 
-import httpx
 import pytest
 from django.test import Client, override_settings
 
-from financas.models import LogAcesso
 from whatsapp.services import PREFIXO_BOT
+
+# ---------------------------------------------------------------------------
+# Webhook — filtragem de eventos e mensagens do WAHA
+# ---------------------------------------------------------------------------
+#
+# O webhook recebe todos os eventos do WAHA (mensagens enviadas e recebidas,
+# mudanças de status de sessão, etc.) e precisa decidir o que processar.
+# Esta suíte verifica os três níveis de filtragem implementados na view:
+#
+# 1. FORMATO DO PAYLOAD: payloads inválidos (JSON malformado) retornam 400.
+#    Payloads grandes demais (>2 MB — típico de áudio/mídia) são rejeitados
+#    silenciosamente com 200, sem tentar ler o body, para evitar que o Django
+#    lance RequestDataTooBig antes de chegarmos ao try/except da view.
+#
+# 2. FILTROS DE ORIGEM: apenas mensagens do grupo configurado em WAHA_GROUP_ID
+#    são processadas. IDs de grupos diferentes, IDs parecidos (mas com um
+#    dígito diferente), chats individuais e ausência de configuração devem
+#    resultar em 200 sem chamar `enviar_mensagem`.
+#
+# 3. FILTROS DE CONTEÚDO E REMETENTE: apenas mensagens com fromMe=True são
+#    aceitas (o bot lê mensagens enviadas pelo número do bot). Mensagens com
+#    fromMe=False (enviadas por outros membros do grupo) são ignoradas.
+#    Mensagens cujo body começa com PREFIXO_BOT são ecos das próprias
+#    respostas do bot e devem ser descartadas para evitar loop infinito.
+#    Eventos que não sejam "message" ou "message.any" também são ignorados.
+#
+# Testes de comportamento (erros de envio, comandos e auditoria) estão em
+# `test_webhook_comportamento.py`.
+# ---------------------------------------------------------------------------
 
 GRUPO_ID = "120363423218993414@g.us"
 CHAT_INDIVIDUAL = "5588999999999@s.whatsapp.net"
@@ -182,87 +209,3 @@ def test_webhook_aceita_evento_message_any(client: Client) -> None:
     assert resposta.status_code == 200
     mock_enviar.assert_called_once()
 
-
-# ---------------------------------------------------------------------------
-# Erro de envio de mensagem
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_retorna_200_mesmo_com_falha_no_envio(
-    client: Client,
-) -> None:
-    """Falha no envio ao WAHA não deve derrubar o webhook."""
-    with patch(
-        "whatsapp.views.enviar_mensagem",
-        side_effect=httpx.ConnectError("WAHA fora do ar"),
-    ):
-        resposta = _post_webhook(client, _PAYLOAD_VALIDO)
-    assert resposta.status_code == 200
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_retorna_200_com_timeout_no_envio(client: Client) -> None:
-    with patch(
-        "whatsapp.views.enviar_mensagem",
-        side_effect=httpx.TimeoutException("timeout"),
-    ):
-        resposta = _post_webhook(client, _PAYLOAD_VALIDO)
-    assert resposta.status_code == 200
-
-
-# ---------------------------------------------------------------------------
-# Comando desconhecido chega pelo webhook
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_comando_desconhecido_responde_lista(
-    client: Client,
-) -> None:
-    dados = {
-        **_PAYLOAD_VALIDO,
-        "payload": {**_PAYLOAD_VALIDO["payload"], "body": "oi"},
-    }
-    with patch("whatsapp.views.enviar_mensagem") as mock_enviar:
-        resposta = _post_webhook(client, dados)
-    assert resposta.status_code == 200
-    texto_enviado = mock_enviar.call_args[0][1]
-    assert "Não conheço o comando" in texto_enviado
-    assert "Comandos disponíveis" in texto_enviado
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_digitar_menu_exibe_menu(client: Client) -> None:
-    dados = {
-        **_PAYLOAD_VALIDO,
-        "payload": {**_PAYLOAD_VALIDO["payload"], "body": "menu"},
-    }
-    with patch("whatsapp.views.enviar_mensagem") as mock_enviar:
-        resposta = _post_webhook(client, dados)
-    assert resposta.status_code == 200
-    texto_enviado = mock_enviar.call_args[0][1]
-    assert "Cofrinho Pessoal" in texto_enviado
-
-
-# ---------------------------------------------------------------------------
-# Auditoria via middleware
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_gera_log_acesso(client: Client) -> None:
-    with patch("whatsapp.views.enviar_mensagem"):
-        _post_webhook(client, _PAYLOAD_VALIDO)
-
-    log = LogAcesso.objects.filter(
-        endpoint="/api/whatsapp/webhook/"
-    ).first()
-    assert log is not None
-    assert log.origem == "whatsapp"
-    assert log.metodo == "POST"

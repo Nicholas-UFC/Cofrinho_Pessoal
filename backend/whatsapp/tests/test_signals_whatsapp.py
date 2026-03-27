@@ -4,6 +4,28 @@ from django.contrib.auth.models import User
 from financas.models import LogAuditoria
 from whatsapp.models import SessaoConversa
 
+# ---------------------------------------------------------------------------
+# Signals de auditoria — SessaoConversa
+# ---------------------------------------------------------------------------
+#
+# O modelo SessaoConversa armazena o estado da conversa de cada grupo com o
+# bot: em qual etapa do fluxo o usuário está, dados temporários da transação
+# em andamento, histórico de mensagens recentes e última atividade.
+#
+# Assim como os modelos financeiros, SessaoConversa está conectada aos signals
+# de auditoria do projeto — toda criação, atualização e deleção deve gerar
+# um LogAuditoria. Isso permite rastrear quando uma sessão foi criada, quando
+# o estado mudou (ex: de "menu" para "aguardando_valor_gasto") e quando foi
+# encerrada.
+#
+# Esta suíte também cobre as operações bulk (`.update()` e `.delete()` via
+# queryset), que não disparam signals normais do Django e por isso exigem
+# o custom QuerySet do projeto para gerar os logs corretamente.
+#
+# O teste de detalhes verifica que o `chat_id` é salvo no log, permitindo
+# identificar de qual grupo a sessão pertencia mesmo após sua deleção.
+# ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def user(db: None) -> User:

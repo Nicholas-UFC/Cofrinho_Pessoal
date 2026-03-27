@@ -10,6 +10,29 @@ from whatsapp.services import processar_mensagem
 CHAT_ID = "120363423218993414@g.us"
 OWNER = "dono"
 
+# ---------------------------------------------------------------------------
+# Timeout de sessão — expiração por inatividade
+# ---------------------------------------------------------------------------
+#
+# Para evitar que o usuário fique preso num estado intermediário do fluxo
+# (ex: esperando pelo valor do gasto) indefinidamente, o bot implementa um
+# timeout de 5 minutos de inatividade.
+#
+# Como funciona: ao processar cada mensagem, o bot verifica quanto tempo se
+# passou desde a última atividade registrada em `dados_temporarios["ultima_
+# atividade"]`. Se passar de 5 minutos e o estado não for "menu", a sessão
+# é resetada: estado volta para "menu", dados_temporarios são limpos, e o
+# usuário recebe uma mensagem avisando que a sessão expirou.
+#
+# Por que `dados_temporarios["ultima_atividade"]` e não `atualizado_em`?
+# `atualizado_em` é auto_now no Django — usa o relógio real do servidor e
+# não pode ser mockado. `_agora()` é uma função interna que pode ser
+# substituída por `patch` nos testes, tornando o timeout 100% determinístico.
+#
+# O estado "menu" nunca expira — só estados intermediários de fluxo
+# (aguardando_valor_gasto, aguardando_categoria_gasto, etc.) são afetados.
+# ---------------------------------------------------------------------------
+
 _AGORA = datetime(2026, 3, 27, 12, 0, 0, tzinfo=UTC)
 
 
@@ -76,7 +99,10 @@ def test_timeout_limpa_dados_temporarios() -> None:
     _enviar("25,00")  # salva valor nos dados_temporarios
     _enviar("oi", delta_minutos=5.1)
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
-    assert sessao.dados_temporarios == {} or "valor" not in sessao.dados_temporarios
+    assert (
+        sessao.dados_temporarios == {}
+        or "valor" not in sessao.dados_temporarios
+    )
 
 
 @pytest.mark.django_db

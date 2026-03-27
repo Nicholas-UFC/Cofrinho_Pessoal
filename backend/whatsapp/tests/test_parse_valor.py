@@ -4,6 +4,32 @@ import pytest
 
 from whatsapp.services import _parse_valor
 
+# ---------------------------------------------------------------------------
+# Parse e validação de valores monetários no formato brasileiro
+# ---------------------------------------------------------------------------
+#
+# A função `_parse_valor` converte strings digitadas pelo usuário no WhatsApp
+# em objetos Decimal prontos para persistência no banco. Ela implementa o
+# padrão monetário brasileiro com regras estritas:
+#
+# SEPARADOR DE MILHAR: ponto, em grupos de exatamente 3 dígitos.
+#   Válido: "1.000", "25.000", "1.000.000"
+#   Inválido: "25.00" (2 dígitos), "25.0" (1 dígito), "25.0000" (4 dígitos)
+#
+# SEPARADOR DECIMAL: vírgula, com exatamente 2 casas decimais (ou nenhuma).
+#   Válido: "25,50", "1.000,00"
+#   Inválido: "25,5" (1 casa), "25,123" (3 casas)
+#
+# INTEIROS: aceitos sem qualquer separador decimal.
+#   Válido: "25", "999", "1000" (sem ponto — pois ponto exige 3 dígitos)
+#
+# VALORES INVÁLIDOS: zero, negativos e texto sempre retornam None.
+#   O chamador é responsável por tratar None e pedir novo valor ao usuário.
+#
+# A função retorna `Decimal` quantizado em 2 casas
+# (ex: "25" → Decimal("25.00")) ou None se o formato for inválido.
+# ---------------------------------------------------------------------------
+
 
 # ---------------------------------------------------------------------------
 # Formatos válidos

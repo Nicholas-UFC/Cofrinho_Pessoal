@@ -10,11 +10,31 @@ from whatsapp.services import processar_mensagem
 CHAT_ID = "120363423218993414@g.us"
 OWNER = "dono"
 
+# ---------------------------------------------------------------------------
+# Rate limit — proteção contra spam de mensagens simultâneas
+# ---------------------------------------------------------------------------
+#
+# O bot implementa um rate limit para evitar que o usuário envie muitas
+# mensagens em sequência muito rápida, o que poderia acontecer por engano
+# (cola de mensagens atrasadas) ou intencionalmente.
+#
+# A regra: no máximo 3 mensagens dentro de uma janela deslizante de 5
+# segundos. Na 4ª mensagem dentro desse período, o bot responde com um aviso
+# listando todas as mensagens recebidas no período e pedindo que o usuário
+# reenvie pausadamente — sem processar o comando.
+#
+# Após a janela expirar (mais de 5 segundos da primeira mensagem), o rate
+# limit é zerado e o bot volta a funcionar normalmente.
+#
+# Para testar isso de forma determinística, os testes usam `patch` na função
+# `_agora()` de `whatsapp.services`, controlando o timestamp de cada mensagem
+# sem depender do relógio real. Isso torna os testes rápidos e previsíveis.
+# ---------------------------------------------------------------------------
+
 _AGORA = datetime(2026, 3, 27, 12, 0, 0, tzinfo=UTC)
 
 
 def _enviar(corpo: str, delta_segundos: float = 0.0) -> str:
-    """Envia mensagem simulando um timestamp específico."""
     momento = _AGORA + timedelta(seconds=delta_segundos)
     with patch("whatsapp.services._agora", return_value=momento):
         return processar_mensagem(CHAT_ID, corpo)
