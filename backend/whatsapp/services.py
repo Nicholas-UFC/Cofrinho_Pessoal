@@ -17,8 +17,19 @@ MENU_TEXTO = (
     "Digite o número da opção."
 )
 
+COMANDOS_CONHECIDOS = (
+    "📋 *Comandos disponíveis:*\n\n"
+    "• *menu* — Exibe o menu principal\n"
+    "• *1* — Registrar gasto (dentro do menu)\n"
+    "• *2* — Registrar entrada (dentro do menu)\n"
+    "• *3* — Ver resumo do mês (dentro do menu)\n"
+    "• *0* — Cancelar operação em andamento\n"
+    "• *s* / *n* — Confirmar ou cancelar"
+)
+
 _CONFIRMACAO_VALIDA = ("s", "sim")
 _CANCELAMENTO_VALIDO = ("n", "nao", "não")
+_TRIGGER_MENU = ("menu",)
 
 
 # ---------------------------------------------------------------------------
@@ -105,6 +116,9 @@ def processar_mensagem(chat_id: str, corpo: str) -> str:
 
 
 def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
+    corpo_lower = corpo.lower()
+    if corpo_lower in _TRIGGER_MENU:
+        return MENU_TEXTO
     if corpo == "1":
         sessao.estado = "aguardando_valor_gasto"
         sessao.save()
@@ -121,7 +135,10 @@ def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
         if not usuario:
             return "❌ Usuário não configurado."
         return _obter_resumo(usuario)
-    return MENU_TEXTO
+    return (
+        f"❓ Não conheço o comando *{corpo}*.\n\n"
+        + COMANDOS_CONHECIDOS
+    )
 
 
 def _processar_valor_gasto(sessao: SessaoConversa, corpo: str) -> str:

@@ -1,11 +1,15 @@
 import json
+import logging
 
+import httpx
 from django.conf import settings
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from whatsapp.services import enviar_mensagem, processar_mensagem
+
+logger = logging.getLogger(__name__)
 
 _IGNORADO = JsonResponse({"status": "ignorado"})
 
@@ -41,6 +45,10 @@ def webhook(request: HttpRequest) -> JsonResponse:
 
     chat_id = dados["payload"]["from"]
     resposta = processar_mensagem(chat_id, corpo)
-    enviar_mensagem(chat_id, resposta)
+
+    try:
+        enviar_mensagem(chat_id, resposta)
+    except httpx.HTTPError as exc:
+        logger.warning("Falha ao enviar mensagem para %s: %s", chat_id, exc)
 
     return JsonResponse({"status": "ok"})
