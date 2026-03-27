@@ -29,23 +29,71 @@ def fonte(usuario: User) -> Fonte:
 
 
 # ---------------------------------------------------------------------------
-# Menu principal
+# Menu principal — trigger explícito
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_mensagem_desconhecida_exibe_menu(usuario: User) -> None:
-    resposta = processar_mensagem(CHAT_ID, "oi")
+def test_digitar_menu_minusculo_exibe_menu(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "menu")
     assert "Cofrinho Pessoal" in resposta
     assert "Registrar gasto" in resposta
 
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_opcao_invalida_exibe_menu(usuario: User) -> None:
-    resposta = processar_mensagem(CHAT_ID, "9")
+def test_digitar_menu_maiusculo_exibe_menu(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "MENU")
     assert "Cofrinho Pessoal" in resposta
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_digitar_menu_misto_exibe_menu(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "Menu")
+    assert "Cofrinho Pessoal" in resposta
+
+
+# ---------------------------------------------------------------------------
+# Comandos desconhecidos
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_comando_desconhecido_retorna_lista_de_comandos(
+    usuario: User,
+) -> None:
+    resposta = processar_mensagem(CHAT_ID, "oi")
+    assert "Não conheço o comando" in resposta
+    assert "Comandos disponíveis" in resposta
+    assert "menu" in resposta
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_numero_invalido_retorna_lista_de_comandos(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "9")
+    assert "Não conheço o comando" in resposta
+    assert "Comandos disponíveis" in resposta
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_comando_desconhecido_nao_muda_estado(usuario: User) -> None:
+    processar_mensagem(CHAT_ID, "oi")
+    sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
+    assert sessao.estado == "menu"
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_comando_desconhecido_inclui_o_texto_enviado(
+    usuario: User,
+) -> None:
+    resposta = processar_mensagem(CHAT_ID, "teste")
+    assert "teste" in resposta
 
 
 # ---------------------------------------------------------------------------
