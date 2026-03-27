@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 import httpx
@@ -30,6 +30,13 @@ COMANDOS_CONHECIDOS = (
 _CONFIRMACAO_VALIDA = ("s", "sim")
 _CANCELAMENTO_VALIDO = ("n", "nao", "não")
 _TRIGGER_MENU = ("menu",)
+
+_JANELA_RATE_LIMIT = 5   # segundos
+_MAX_MENSAGENS = 3        # mensagens permitidas na janela
+
+
+def _agora() -> datetime:
+    return datetime.now(tz=UTC)
 
 
 # ---------------------------------------------------------------------------
@@ -78,6 +85,36 @@ def _obter_resumo(usuario: User) -> str:
     )
 
 
+def _verificar_rate_limit(
+    sessao: SessaoConversa, corpo: str
+) -> str | None:
+    """Retorna mensagem de rate limit se muitas mensagens chegaram rápido."""
+    agora = _agora()
+    janela_inicio = agora - timedelta(seconds=_JANELA_RATE_LIMIT)
+
+    recentes = sessao.dados_temporarios.get("mensagens_recentes", [])
+    recentes = [
+        m for m in recentes
+        if datetime.fromisoformat(m["ts"]) > janela_inicio
+    ]
+    recentes.append({"ts": agora.isoformat(), "corpo": corpo})
+
+    sessao.dados_temporarios["mensagens_recentes"] = recentes
+    sessao.save()
+
+    if len(recentes) <= _MAX_MENSAGENS:
+        return None
+
+    lista = "\n".join(f'• "{m["corpo"]}"' for m in recentes)
+    return (
+        "⚠️ *Muitas mensagens ao mesmo tempo!*\n\n"
+        "O sistema não consegue processar tantas mensagens "
+        "simultâneas. Reenvie-as pausadamente.\n\n"
+        "*Mensagens recebidas neste período:*\n"
+        + lista
+    )
+
+
 def _parse_valor(texto: str) -> Decimal | None:
     try:
         valor = Decimal(texto.replace(",", "."))
@@ -94,6 +131,10 @@ def _parse_valor(texto: str) -> Decimal | None:
 def processar_mensagem(chat_id: str, corpo: str) -> str:
     sessao, _ = SessaoConversa.objects.get_or_create(chat_id=chat_id)
     corpo = corpo.strip()
+
+    rate_limit = _verificar_rate_limit(sessao, corpo)
+    if rate_limit:
+        return rate_limit
 
     despachantes = {
         "menu": _processar_menu,
