@@ -7,31 +7,35 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from whatsapp.services import enviar_mensagem, processar_mensagem
+from whatsapp.services import PREFIXO_BOT, enviar_mensagem, processar_mensagem
 
 logger = logging.getLogger(__name__)
 
 _IGNORADO = JsonResponse({"status": "ignorado"})
+_MAX_BODY_BYTES = 2 * 1024 * 1024  # 2 MB — suficiente para texto, bloqueia mídia
 
 
 def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:
     """Retorna o corpo da mensagem se deve ser processada, ou None."""
-    if dados.get("event") != "message":
+    if dados.get("event") not in ("message", "message.any"):
         return None
     payload = dados.get("payload", {})
+    corpo = payload.get("body", "") or ""
+    if corpo.startswith(PREFIXO_BOT):
+        return None
     if not payload.get("fromMe", False):
         return None
     if payload.get("from", "") != grupo_esperado:
         return None
-    return payload.get("body", "").strip() or None
+    return corpo.strip() or None
 
 
 @csrf_exempt
 @require_POST
 def webhook(request: HttpRequest) -> JsonResponse:
-    api_key = request.headers.get("X-Api-Key", "")
-    if api_key != getattr(settings, "WAHA_API_KEY", ""):
-        return JsonResponse({"erro": "não autorizado"}, status=401)
+    tamanho = int(request.META.get("CONTENT_LENGTH") or 0)
+    if tamanho > _MAX_BODY_BYTES:
+        return _IGNORADO
 
     try:
         dados = json.loads(request.body)
