@@ -36,8 +36,9 @@ _CONFIRMACAO_VALIDA = ("s", "sim")
 _CANCELAMENTO_VALIDO = ("n", "nao", "não")
 _TRIGGER_MENU = ("menu",)
 
-_JANELA_RATE_LIMIT = 5   # segundos
-_MAX_MENSAGENS = 3        # mensagens permitidas na janela
+_JANELA_RATE_LIMIT = 5    # segundos
+_MAX_MENSAGENS = 3         # mensagens permitidas na janela
+_TIMEOUT_SESSAO = 5        # minutos sem resposta para resetar o estado
 
 
 def _agora() -> datetime:
@@ -90,6 +91,31 @@ def _obter_resumo(usuario: User) -> str:
     )
 
 
+def _verificar_timeout(sessao: SessaoConversa) -> str | None:
+    """Reseta o estado se a sessão ficou inativa além do timeout.
+
+    Usa ultima_atividade de dados_temporarios (mockável) em vez de
+    atualizado_em (definido pelo Django com tempo real).
+    Retorna mensagem de aviso ou None se ainda dentro do prazo.
+    """
+    if sessao.estado == "menu":
+        return None
+    ultima = sessao.dados_temporarios.get("ultima_atividade")
+    if ultima is None:
+        return None
+    limite = timedelta(minutes=_TIMEOUT_SESSAO)
+    if _agora() - datetime.fromisoformat(ultima) < limite:
+        return None
+    sessao.estado = "menu"
+    sessao.dados_temporarios = {}
+    sessao.save()
+    return (
+        "⏱️ *Sessão expirada por inatividade.*\n\n"
+        "Sua operação anterior foi cancelada.\n\n"
+        + MENU_TEXTO
+    )
+
+
 def _verificar_rate_limit(
     sessao: SessaoConversa, corpo: str
 ) -> str | None:
@@ -105,6 +131,7 @@ def _verificar_rate_limit(
     recentes.append({"ts": agora.isoformat(), "corpo": corpo})
 
     sessao.dados_temporarios["mensagens_recentes"] = recentes
+    sessao.dados_temporarios["ultima_atividade"] = agora.isoformat()
     sessao.save()
 
     if len(recentes) <= _MAX_MENSAGENS:
@@ -150,6 +177,10 @@ def _normalizar_corpo(corpo: str) -> str:
 def processar_mensagem(chat_id: str, corpo: str) -> str:
     sessao, _ = SessaoConversa.objects.get_or_create(chat_id=chat_id)
     corpo = _normalizar_corpo(corpo)
+
+    timeout = _verificar_timeout(sessao)
+    if timeout:
+        return timeout
 
     rate_limit = _verificar_rate_limit(sessao, corpo)
     if rate_limit:
