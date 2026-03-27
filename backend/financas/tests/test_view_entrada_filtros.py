@@ -10,6 +10,25 @@ from rest_framework.test import APIClient
 from financas.models import Entrada, Fonte
 
 # ---------------------------------------------------------------------------
+# Filtros de busca no endpoint de Entradas
+# ---------------------------------------------------------------------------
+#
+# O endpoint de Entradas suporta filtros via query string que permitem ao
+# frontend e ao bot exibir apenas os registros relevantes para uma consulta.
+# Esta suíte verifica que os filtros retornam exatamente os registros
+# esperados e ignoram os demais:
+#
+# — `?fonte=<id>`: filtra entradas por fonte específica. Útil para analisar
+#   quanto veio de uma determinada fonte (ex: somente salário vs. freelance).
+# — `?valor__gte=<valor>`: filtra entradas com valor maior ou igual ao
+#   informado. Útil para identificar entradas acima de um certo patamar.
+#
+# Todos os filtros operam apenas sobre os dados do usuário autenticado —
+# o isolamento multi-usuário já é garantido pelo queryset base do viewset.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

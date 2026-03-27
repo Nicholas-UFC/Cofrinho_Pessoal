@@ -9,6 +9,29 @@ from django.utils import timezone
 
 from financas.models import Categoria, Gasto
 
+# ---------------------------------------------------------------------------
+# Testes de modelo — Gasto
+# ---------------------------------------------------------------------------
+#
+# Esta suíte testa as regras de negócio embutidas diretamente no model Gasto,
+# sem passar pela API REST. O objetivo é garantir que as restrições de dados
+# são aplicadas na camada de modelo, independentemente de como o registro é
+# criado (pela API, pelo admin, pelo bot do WhatsApp ou diretamente via ORM).
+#
+# O que é testado:
+# — Criação bem-sucedida com todos os campos obrigatórios preenchidos
+#   corretamente, verificando os valores salvos no banco.
+# — `__str__` retorna "Descrição - R$ valor", formato esperado no admin.
+# — Valores negativos e zero disparam ValidationError via `full_clean()`,
+#   que executa os validators do campo antes de tentar salvar.
+# — Valores negativos também disparam IntegrityError via CheckConstraint no
+#   banco — segunda linha de defesa caso `full_clean()` seja bypassado.
+# — `descricao` tem max_length=200; ultrapassar dispara ValidationError.
+# — `criado_em` é auto_now_add e portanto imutável — salvar um valor diferente
+#   deve ser silenciosamente ignorado pelo Django.
+# — A ordenação padrão do queryset é pela data mais recente primeiro.
+# ---------------------------------------------------------------------------
+
 _MSG_POSITIVO = "Apenas valores positivos são permitidos."
 
 

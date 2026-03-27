@@ -5,6 +5,21 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 # ---------------------------------------------------------------------------
+# Autenticação — proteção de endpoints sem token JWT
+# ---------------------------------------------------------------------------
+#
+# Todos os endpoints da API financeira são protegidos por JWT. Um cliente
+# que não envie o header `Authorization: Bearer <token>` deve receber 401
+# em qualquer endpoint — independentemente do método HTTP.
+#
+# Este arquivo verifica essa barreira para os quatro recursos principais:
+# categorias, fontes, gastos e entradas. O objetivo é garantir que nenhum
+# endpoint foi acidentalmente deixado sem autenticação, o que abriria uma
+# brecha de segurança onde dados financeiros privados ficariam expostos.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

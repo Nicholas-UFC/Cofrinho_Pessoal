@@ -11,6 +11,26 @@ from django.utils import timezone
 from financas.models import Categoria, Gasto
 
 # ---------------------------------------------------------------------------
+# Testes de modelo — Categoria
+# ---------------------------------------------------------------------------
+#
+# Categoria é um modelo de lookup que o usuário cria para classificar seus
+# gastos. Esta suíte testa as restrições e comportamentos definidos no model:
+#
+# — Nome tem max_length=100; ultrapassar dispara ValidationError.
+# — O par (nome, usuario) é único: o mesmo usuário não pode ter duas
+#   categorias com o mesmo nome (IntegrityError ao tentar criar duplicata).
+#   Mas usuários diferentes podem ter categorias homônimas — é uma constraint
+#   por usuário (unique_together), não global.
+# — `criado_em` é auto_now_add e imutável.
+# — Deletar uma Categoria que ainda tem Gastos associados lança
+#   ProtectedError, garantindo que não se apague uma categoria em uso.
+# — Deletar uma Categoria sem Gastos funciona normalmente.
+#
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixture de usuário compartilhada
 # ---------------------------------------------------------------------------
 

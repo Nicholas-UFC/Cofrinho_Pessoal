@@ -7,6 +7,24 @@ from rest_framework.test import APIClient
 from financas.models import Fonte
 
 # ---------------------------------------------------------------------------
+# CRUD, isolamento e unicidade no endpoint de Fontes
+# ---------------------------------------------------------------------------
+#
+# Fontes são entidades de configuração usadas para classificar entradas
+# financeiras (ex: "Salário", "Freelance", "Rendimento"). O endpoint segue
+# as mesmas regras de negócio do endpoint de Categorias:
+#
+# — Lista plana sem paginação — o frontend renderiza todas as fontes num
+#   <select>, então precisa de uma lista, não de um dict paginado.
+# — Nome duplicado para o mesmo usuário é rejeitado com 400 (unique_together).
+#   Mas dois usuários diferentes podem ter fontes com o mesmo nome.
+# — Isolamento multi-usuário: cada usuário vê apenas suas fontes. Tentar
+#   acessar, editar ou excluir uma fonte de outro usuário retorna 404.
+# — O campo `usuario` enviado no payload é ignorado; o backend usa o JWT.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

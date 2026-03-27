@@ -10,6 +10,23 @@ from rest_framework.test import APIClient
 from financas.models import Entrada, Fonte
 
 # ---------------------------------------------------------------------------
+# CRUD e validações de campo no endpoint de Entradas
+# ---------------------------------------------------------------------------
+#
+# Esta suíte testa as operações básicas do EntradaViewSet (list, create,
+# retrieve, update, patch e destroy) e as regras de validação de campo.
+#
+# As entradas financeiras seguem as mesmas regras de negócio dos gastos:
+# valor deve ser positivo, descrição e fonte são obrigatórias, e a data
+# deve estar no formato ISO 8601. O campo `criado_em` é auto_now_add e deve
+# ser ignorado mesmo se enviado pelo cliente no payload de criação.
+#
+# Testes de isolamento multi-usuário (garantia de que um usuário não enxerga
+# entradas de outro) estão em `test_view_entrada_isolamento.py`.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -220,105 +237,3 @@ class TestEntradaViewSet:
         entrada = Entrada.objects.get(pk=response.data["id"])
         assert entrada.criado_em.year != 2000
 
-    # --- Isolamento multi-usuário ---
-
-    def test_list_nao_exibe_entradas_de_outro_usuario(
-        self,
-        auth_client: APIClient,
-        entrada: Entrada,
-        outro_user: User,
-    ) -> None:
-        outra_fonte = Fonte.objects.create(
-            nome="Freelance", usuario=outro_user
-        )
-        Entrada.objects.create(
-            descricao="Renda extra",
-            valor=Decimal("500.00"),
-            fonte=outra_fonte,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        response = auth_client.get(reverse("entrada-list"))
-        assert response.data["count"] == 1
-
-    def test_retrieve_de_outro_usuario_retorna_404(
-        self, auth_client: APIClient, outro_user: User
-    ) -> None:
-        outra_fonte = Fonte.objects.create(
-            nome="Freelance", usuario=outro_user
-        )
-        outra_entrada = Entrada.objects.create(
-            descricao="Renda extra",
-            valor=Decimal("500.00"),
-            fonte=outra_fonte,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("entrada-detail", args=[outra_entrada.pk])
-        response = auth_client.get(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_update_de_outro_usuario_retorna_404(
-        self, auth_client: APIClient, outro_user: User, fonte: Fonte
-    ) -> None:
-        outra_fonte = Fonte.objects.create(
-            nome="Freelance", usuario=outro_user
-        )
-        outra_entrada = Entrada.objects.create(
-            descricao="Renda extra",
-            valor=Decimal("500.00"),
-            fonte=outra_fonte,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("entrada-detail", args=[outra_entrada.pk])
-        response = auth_client.put(
-            url,
-            {
-                "descricao": "Hackeado",
-                "valor": "1.00",
-                "fonte": fonte.pk,
-                "data": date.today().isoformat(),
-            },
-        )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_destroy_de_outro_usuario_retorna_404(
-        self, auth_client: APIClient, outro_user: User
-    ) -> None:
-        outra_fonte = Fonte.objects.create(
-            nome="Freelance", usuario=outro_user
-        )
-        outra_entrada = Entrada.objects.create(
-            descricao="Renda extra",
-            valor=Decimal("500.00"),
-            fonte=outra_fonte,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("entrada-detail", args=[outra_entrada.pk])
-        response = auth_client.delete(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    # --- Serializer ignora campo usuario enviado pelo cliente ---
-
-    def test_usuario_enviado_pelo_cliente_e_ignorado(
-        self,
-        auth_client: APIClient,
-        user: User,
-        outro_user: User,
-        fonte: Fonte,
-    ) -> None:
-        response = auth_client.post(
-            reverse("entrada-list"),
-            {
-                "descricao": "Teste",
-                "valor": "100.00",
-                "fonte": fonte.pk,
-                "data": date.today().isoformat(),
-                "usuario": outro_user.pk,
-            },
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        entrada = Entrada.objects.get(pk=response.data["id"])
-        assert entrada.usuario == user

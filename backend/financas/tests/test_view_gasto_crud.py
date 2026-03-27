@@ -10,6 +10,28 @@ from rest_framework.test import APIClient
 from financas.models import Categoria, Gasto
 
 # ---------------------------------------------------------------------------
+# CRUD e validações de campo no endpoint de Gastos
+# ---------------------------------------------------------------------------
+#
+# Esta suíte testa as operações básicas do GastoViewSet (list, create,
+# retrieve, update, patch e destroy) e as validações de campo que o
+# serializer e o model impõem ao receber dados do cliente.
+#
+# Por que essas validações importam?
+# — Valor negativo ou zero deve ser rejeitado com 400: o model usa um
+#   validator e um CheckConstraint no banco, mas o serializer precisa
+#   rejeitá-los antes mesmo de tentar salvar, devolvendo erro claro.
+# — Descrição e categoria são obrigatórias; data deve estar em ISO 8601.
+#   Qualquer campo faltante ou inválido deve resultar em 400, não 500.
+# — O campo `criado_em` é `auto_now_add` e, por isso, somente leitura: qualquer
+#   valor enviado pelo cliente nesse campo deve ser silenciosamente ignorado —
+#   o servidor sempre usa o timestamp gerado pelo banco.
+# — Testes de isolamento multi-usuário e de segurança do campo `usuario` estão
+#   em `test_view_gasto_isolamento.py`.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -220,108 +242,3 @@ class TestGastoViewSet:
         gasto = Gasto.objects.get(pk=response.data["id"])
         assert gasto.criado_em.year != 2000
 
-    # --- Isolamento multi-usuário ---
-
-    def test_list_nao_exibe_gastos_de_outro_usuario(
-        self,
-        auth_client: APIClient,
-        gasto: Gasto,
-        outro_user: User,
-    ) -> None:
-        outra_cat = Categoria.objects.create(
-            nome="Transporte", usuario=outro_user
-        )
-        Gasto.objects.create(
-            descricao="Uber",
-            valor=Decimal("30.00"),
-            categoria=outra_cat,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        response = auth_client.get(reverse("gasto-list"))
-        assert response.data["count"] == 1
-
-    def test_retrieve_de_outro_usuario_retorna_404(
-        self, auth_client: APIClient, outro_user: User
-    ) -> None:
-        outra_cat = Categoria.objects.create(
-            nome="Transporte", usuario=outro_user
-        )
-        outro_gasto = Gasto.objects.create(
-            descricao="Uber",
-            valor=Decimal("30.00"),
-            categoria=outra_cat,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("gasto-detail", args=[outro_gasto.pk])
-        response = auth_client.get(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_update_de_outro_usuario_retorna_404(
-        self,
-        auth_client: APIClient,
-        outro_user: User,
-        categoria: Categoria,
-    ) -> None:
-        outra_cat = Categoria.objects.create(
-            nome="Transporte", usuario=outro_user
-        )
-        outro_gasto = Gasto.objects.create(
-            descricao="Uber",
-            valor=Decimal("30.00"),
-            categoria=outra_cat,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("gasto-detail", args=[outro_gasto.pk])
-        response = auth_client.put(
-            url,
-            {
-                "descricao": "Hackeado",
-                "valor": "1.00",
-                "categoria": categoria.pk,
-                "data": date.today().isoformat(),
-            },
-        )
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_destroy_de_outro_usuario_retorna_404(
-        self, auth_client: APIClient, outro_user: User
-    ) -> None:
-        outra_cat = Categoria.objects.create(
-            nome="Transporte", usuario=outro_user
-        )
-        outro_gasto = Gasto.objects.create(
-            descricao="Uber",
-            valor=Decimal("30.00"),
-            categoria=outra_cat,
-            usuario=outro_user,
-            data=date.today(),
-        )
-        url = reverse("gasto-detail", args=[outro_gasto.pk])
-        response = auth_client.delete(url)
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    # --- Serializer ignora campo usuario enviado pelo cliente ---
-
-    def test_usuario_enviado_pelo_cliente_e_ignorado(
-        self,
-        auth_client: APIClient,
-        user: User,
-        outro_user: User,
-        categoria: Categoria,
-    ) -> None:
-        response = auth_client.post(
-            reverse("gasto-list"),
-            {
-                "descricao": "Teste",
-                "valor": "10.00",
-                "categoria": categoria.pk,
-                "data": date.today().isoformat(),
-                "usuario": outro_user.pk,
-            },
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        gasto = Gasto.objects.get(pk=response.data["id"])
-        assert gasto.usuario == user

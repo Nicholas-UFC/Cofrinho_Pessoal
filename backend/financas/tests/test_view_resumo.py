@@ -10,6 +10,25 @@ from rest_framework.test import APIClient
 from financas.models import Categoria, Entrada, Fonte, Gasto
 
 # ---------------------------------------------------------------------------
+# Endpoint de resumo financeiro mensal
+# ---------------------------------------------------------------------------
+#
+# O endpoint `/api/resumo/` agrega os dados financeiros do usuário autenticado
+# e retorna um snapshot do mês atual: total de entradas, total de gastos,
+# saldo (entradas - gastos) e gastos agrupados por categoria.
+#
+# Esta suíte verifica:
+# — Sem dados, todos os totais retornam zero.
+# — Com entradas e gastos, o saldo é calculado corretamente.
+# — Os gastos são agrupados por categoria com o total correto por categoria,
+#   permitindo ao frontend exibir um breakdown de onde o dinheiro foi gasto.
+# — Sem token, o endpoint retorna 401 — o resumo é sempre privado.
+# — Isolamento multi-usuário: entradas e gastos de outro usuário não
+#   aparecem no resumo do usuário autenticado, mesmo que sejam do mesmo mês.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

@@ -4,6 +4,26 @@ from django.test import Client
 
 from financas.models import LogAcesso
 
+# ---------------------------------------------------------------------------
+# Middleware de LogAcesso — registro automático de requisições
+# ---------------------------------------------------------------------------
+#
+# O LogAcessoMiddleware intercepta todas as requisições ao servidor e salva
+# um registro no banco com os metadados da chamada. Os testes aqui verificam
+# cada campo que o middleware é responsável por preencher:
+#
+# — `usuario`: None para requisições anônimas, o objeto User para autenticadas.
+# — `metodo`: o verbo HTTP (GET, POST, etc.).
+# — `origem`: "web" quando vem do frontend (detectado pelo Referer),
+#   "whatsapp" para o endpoint `/api/whatsapp/webhook/`,
+#   "api" para chamadas diretas sem Referer.
+# — `dispositivo`: "mobile" ou "desktop", detectado pelo User-Agent.
+# — `status_code`: o código de resposta HTTP retornado pela view.
+# — `duracao_ms`: tempo de processamento da requisição em milissegundos.
+# — Requisições ao `/admin/` não geram LogAcesso — são excluídas pelo
+#   middleware para evitar poluir os logs com acessos administrativos.
+# ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def user(db: None) -> User:
