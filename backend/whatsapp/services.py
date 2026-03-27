@@ -8,6 +8,10 @@ from django.contrib.auth.models import User
 from financas.models import Categoria, Entrada, Fonte, Gasto
 from whatsapp.models import SessaoConversa
 
+# Prefixo invisível adicionado a todas as respostas do bot.
+# Permite que o webhook ignore o echo do message.any sem depender de IDs.
+PREFIXO_BOT = "\u200b"
+
 MENU_TEXTO = (
     "🤖 *Cofrinho Pessoal*\n\n"
     "O que você quer fazer?\n\n"
@@ -146,9 +150,8 @@ def processar_mensagem(chat_id: str, corpo: str) -> str:
         "confirmando_entrada": _processar_confirmacao_entrada,
     }
     handler = despachantes.get(sessao.estado)
-    if handler is None:
-        return MENU_TEXTO
-    return handler(sessao, corpo)
+    resposta = MENU_TEXTO if handler is None else handler(sessao, corpo)
+    return PREFIXO_BOT + resposta
 
 
 # ---------------------------------------------------------------------------
@@ -407,6 +410,26 @@ def _salvar_entrada(sessao: SessaoConversa, usuario: User) -> None:
 # Cliente WAHA
 # ---------------------------------------------------------------------------
 
+# IDs das mensagens enviadas pelo bot — usados para ignorar o echo do message.any
+_ids_enviados: set[str] = set()
+_MAX_IDS_ENVIADOS = 200
+
+
+def ids_enviados_pelo_bot() -> set[str]:
+    return _ids_enviados
+
+
+def _registrar_id_enviado(resposta: httpx.Response) -> None:
+    try:
+        msg_id = resposta.json().get("id")
+    except Exception:
+        return
+    if not msg_id:
+        return
+    _ids_enviados.add(msg_id)
+    if len(_ids_enviados) > _MAX_IDS_ENVIADOS:
+        _ids_enviados.discard(next(iter(_ids_enviados)))
+
 
 def enviar_mensagem(chat_id: str, texto: str) -> None:
     url = f"{settings.WAHA_API_URL}/api/sendText"
@@ -416,4 +439,5 @@ def enviar_mensagem(chat_id: str, texto: str) -> None:
         "text": texto,
         "session": getattr(settings, "WAHA_SESSION", "default"),
     }
-    httpx.post(url, json=payload, headers=headers, timeout=10)
+    resposta = httpx.post(url, json=payload, headers=headers, timeout=10)
+    _registrar_id_enviado(resposta)
