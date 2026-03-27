@@ -29,6 +29,29 @@ def fonte(usuario: User) -> Fonte:
 
 
 # ---------------------------------------------------------------------------
+# Normalização de entrada — limpeza antes do processamento
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("entrada", [
+    "menu",
+    "MENU",
+    "Menu",
+    "M E N U",
+    "M  E  N  U",
+    "  menu  ",
+    "  M E N U  ",
+    "mEnU",
+])
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_menu_aceita_qualquer_forma_de_escrita(entrada: str, usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, entrada)
+    assert "Cofrinho Pessoal" in resposta
+    assert "Registrar gasto" in resposta
+
+
+# ---------------------------------------------------------------------------
 # Menu principal — trigger explícito
 # ---------------------------------------------------------------------------
 

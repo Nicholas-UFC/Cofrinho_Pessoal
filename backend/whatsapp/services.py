@@ -132,9 +132,14 @@ def _parse_valor(texto: str) -> Decimal | None:
 # ---------------------------------------------------------------------------
 
 
+def _normalizar_corpo(corpo: str) -> str:
+    """Limpa a mensagem: minúsculas e sem espaços internos ou externos."""
+    return corpo.lower().replace(" ", "")
+
+
 def processar_mensagem(chat_id: str, corpo: str) -> str:
     sessao, _ = SessaoConversa.objects.get_or_create(chat_id=chat_id)
-    corpo = corpo.strip()
+    corpo = _normalizar_corpo(corpo)
 
     rate_limit = _verificar_rate_limit(sessao, corpo)
     if rate_limit:
