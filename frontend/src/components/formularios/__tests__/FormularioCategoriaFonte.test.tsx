@@ -3,6 +3,32 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FormularioCategoriaFonte } from "../FormularioCategoriaFonte";
 
+/*
+ * FormularioCategoriaFonte — testes de renderização, submit e estados
+ * --------------------------------------------------------------------
+ *
+ * O FormularioCategoriaFonte é um componente controlado que serve
+ * tanto para criar Categorias quanto para criar Fontes. A prop
+ * `activeTab` determina qual modo está ativo: "categoria" ou "fonte".
+ * O componente muda label, placeholder e texto do botão de acordo.
+ *
+ * Os testes são divididos em três grupos:
+ *
+ * 1. ABA CATEGORIA: verifica que o label "Nome da Categoria" e o
+ *    botão "Criar Categoria" estão presentes, que `onSubmit` é chamado
+ *    com o nome digitado pelo usuário, e que o campo é limpo após o
+ *    submit — para que o usuário possa cadastrar o próximo item
+ *    imediatamente sem precisar apagar o texto manualmente.
+ *
+ * 2. ABA FONTE: mesmos comportamentos, mas no modo "fonte" — label
+ *    "Nome da Fonte", botão "Criar Fonte" e chamada ao `onSubmit`.
+ *
+ * 3. ESTADOS: o componente recebe `loading`, `success` e `error` como
+ *    props e os reflete visualmente. Durante loading, o botão exibe
+ *    "Salvando..." e fica desabilitado para evitar duplo submit.
+ *    As mensagens de sucesso e erro são exibidas conforme recebidas.
+ */
+
 const propsPadrao = {
     activeTab: "categoria" as const,
     loading: false,

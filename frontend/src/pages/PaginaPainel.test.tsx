@@ -6,6 +6,33 @@ import { makeFakeToken } from "../test/handlers";
 import { server } from "../test/server";
 import PaginaPainel from "./PaginaPainel";
 
+/*
+ * PaginaPainel — testes do dashboard financeiro
+ * -----------------------------------------------
+ *
+ * O PaginaPainel é a tela principal após o login. Ele consome três
+ * endpoints — resumo, gastos e entradas — e apresenta os dados em
+ * cards de resumo e quatro gráficos (barras, linha do tempo, pizza
+ * por categoria e pizza por fonte).
+ *
+ * Os testes são divididos em quatro grupos:
+ *
+ * 1. CARREGAMENTO: a tela exibe "Carregando..." enquanto a chamada
+ *    à API está pendente e, após resolver, apresenta os três cards
+ *    com os valores corretos formatados em BRL.
+ *
+ * 2. CORES DO SALDO: o saldo positivo deve ser verde (#22c55e) e o
+ *    negativo deve ser vermelho (#f87171). Essa distinção visual é
+ *    crítica para a usabilidade financeira do usuário.
+ *
+ * 3. ERRO DE API: quando o endpoint /resumo/ falha, a tela exibe uma
+ *    mensagem de erro clara e não tenta renderizar dados parciais.
+ *
+ * 4. GRÁFICOS: todos os quatro títulos de gráfico devem estar visíveis
+ *    após o carregamento. Quando não há gastos ou entradas, cada gráfico
+ *    vazio exibe uma mensagem específica em vez de um gráfico em branco.
+ */
+
 describe("PaginaPainel — carregamento", () => {
     it("exibe 'Carregando...' antes dos dados chegarem", () => {
         localStorage.setItem("access", makeFakeToken());

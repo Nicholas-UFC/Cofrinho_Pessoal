@@ -1,6 +1,30 @@
 import { describe, it, expect } from "vitest";
 import { formatarBRL, formatDate } from "../format";
 
+/*
+ * Utilitários de formatação — formatarBRL e formatDate
+ * -----------------------------------------------------
+ *
+ * Este arquivo testa as duas funções de formatação usadas em toda
+ * a interface para apresentar dados financeiros ao usuário brasileiro.
+ *
+ * formatarBRL(valor: string): string
+ *   Converte uma string decimal no formato da API ("1500.00") para o
+ *   formato monetário brasileiro com símbolo de real, separador de
+ *   milhar (ponto) e separador decimal (vírgula): "R$ 1.500,00".
+ *   Usa `Intl.NumberFormat` internamente, por isso o espaço entre
+ *   "R$" e o número é um non-breaking space (\u00a0), não um espaço
+ *   normal — os testes usam esse caractere explicitamente para evitar
+ *   falsos positivos com espaços comuns.
+ *   Valores negativos devem ser formatados como "-R$ 300,00", com o
+ *   sinal antes do símbolo da moeda.
+ *
+ * formatDate(data: string): string
+ *   Converte uma string ISO 8601 ("2026-03-19") para o formato
+ *   brasileiro DD/MM/AAAA ("19/03/2026"). É usada nas tabelas de
+ *   histórico e nos cards do painel para exibir datas legíveis.
+ */
+
 describe("formatarBRL", () => {
     it("formata valor positivo em reais brasileiros", () => {
         expect(formatarBRL("1500.00")).toBe("R$\u00a01.500,00");

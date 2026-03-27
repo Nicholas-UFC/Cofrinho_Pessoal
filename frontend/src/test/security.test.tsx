@@ -7,6 +7,37 @@ import { server } from "./server";
 import type { JSX } from "react";
 import { useAutenticacao } from "../context/useAutenticacao";
 
+/*
+ * Testes de segurança do frontend — autenticação, tokens e controle de acesso
+ * ---------------------------------------------------------------------------
+ *
+ * Este arquivo reúne todos os testes de segurança da aplicação React. O
+ * objetivo é garantir que o frontend não expõe dados nem funcionalidades
+ * protegidas por falhas de verificação de token ou de controle de acesso.
+ *
+ * Os testes são organizados em quatro grupos:
+ *
+ * 1. TOKENS: verifica que tokens inválidos (expirados, malformados) não
+ *    autenticam o usuário — o AutenticacaoContext deve detectar o problema
+ *    e limpar o localStorage antes de renderizar qualquer dado protegido.
+ *    Também cobre que o logout remove os tokens corretamente.
+ *
+ * 2. INTERCEPTOR 401: o axios tem um interceptor que tenta fazer refresh
+ *    automático do token ao receber 401. Se o refresh também falhar, os
+ *    tokens devem ser removidos do localStorage para forçar novo login.
+ *    Esse teste usa MSW para simular os endpoints falhando.
+ *
+ * 3. XSS: dados retornados pela API que contêm HTML ou scripts não devem
+ *    ser interpretados como markup pelo React — devem aparecer como texto
+ *    puro na tela. React faz isso por padrão via JSX, mas o teste serve
+ *    como regressão para garantir que nenhum `dangerouslySetInnerHTML`
+ *    foi introduzido acidentalmente nos componentes que exibem dados da API.
+ *
+ * 4. ACESSO ADMIN: o link do Painel Admin na TopBar só deve ser exibido para
+ *    usuários com `is_staff = true` no payload do JWT. Usuários normais não
+ *    devem nem ver o link — não apenas serem bloqueados ao clicar.
+ */
+
 // ──────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────

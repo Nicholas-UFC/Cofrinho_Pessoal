@@ -5,6 +5,37 @@ import { renderWithProviders } from "../test/utils";
 import { makeFakeToken } from "../test/handlers";
 import BarraTopo from "./BarraTopo";
 
+/*
+ * BarraTopo — testes do cabeçalho da aplicação
+ * ---------------------------------------------
+ *
+ * A BarraTopo é o componente de cabeçalho que aparece em todas as
+ * páginas autenticadas. Ela exibe o nome do usuário logado, um
+ * dropdown de ações (logout e, para admins, link para o Painel
+ * Admin do Django) e o botão hambúrguer para abrir o MenuLateral
+ * no mobile.
+ *
+ * Os testes são divididos em cinco grupos:
+ *
+ * 1. EXIBIÇÃO DO USUÁRIO: o nome extraído do JWT é exibido ao lado
+ *    da saudação "Olá,".
+ *
+ * 2. DROPDOWN: o dropdown está oculto por padrão e abre ao clicar no
+ *    nome do usuário. Um segundo clique fecha o dropdown — toggle.
+ *
+ * 3. PAINEL ADMIN: o link "Painel Admin" só aparece quando `isAdmin`
+ *    é true (is_staff=true no payload JWT). Para usuários comuns, o
+ *    link não deve existir no DOM. Quando exibido, deve apontar para
+ *    /admin/ e abrir em nova aba com rel="noopener" por segurança.
+ *
+ * 4. LOGOUT: clicar em Logout no dropdown limpa ambos os tokens do
+ *    localStorage.
+ *
+ * 5. MOBILE: o botão hambúrguer ("Abrir menu") está presente e, ao
+ *    ser clicado, chama a prop `onMenuClick` para que o componente
+ *    pai (Layout) possa abrir o MenuLateral.
+ */
+
 const defaultProps = { onMenuClick: vi.fn() };
 
 describe("BarraTopo — exibição do usuário", () => {

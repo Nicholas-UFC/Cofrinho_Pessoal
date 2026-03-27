@@ -1,10 +1,38 @@
 import { describe, it, expect } from "vitest";
-import { screen, act } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../test/utils";
 import { makeFakeToken } from "../test/handlers";
 import { useAutenticacao } from "./useAutenticacao";
 import type { JSX } from "react";
+
+/*
+ * ContextoAutenticacao — testes de estado inicial e login
+ * --------------------------------------------------------
+ *
+ * O ContextoAutenticacao é o coração da autenticação do frontend.
+ * Ele lê o token JWT do localStorage na inicialização, decodifica o
+ * payload (sem nenhuma chamada à API) e expõe `isAuthenticated`,
+ * `username` e `isAdmin` para todos os componentes filhos.
+ *
+ * Esta suíte cobre dois grupos de comportamento:
+ *
+ * 1. ESTADO INICIAL: o que o contexto expõe ao montar sem interação
+ *    do usuário. Os cenários cobrem: ausência de token, token de
+ *    usuário comum (is_staff=false) e token de administrador
+ *    (is_staff=true). Isso garante que a UI já nasce no estado
+ *    correto — sem precisar de nenhum round-trip ao servidor.
+ *
+ * 2. LOGIN: o que acontece quando o usuário submete credenciais
+ *    válidas. O MSW intercepta a chamada ao endpoint de token e
+ *    devolve um access + refresh token. Os testes verificam que:
+ *    — os tokens são salvos no localStorage (para persistência),
+ *    — `isAuthenticated` muda para true (para liberar rotas privadas),
+ *    — `username` é preenchido a partir do payload do JWT.
+ *
+ * Os testes de logout ficam em ContextoAutenticacao.logout.test.tsx
+ * para manter cada arquivo com uma única responsabilidade.
+ */
 
 // ──────────────────────────────────────────────────────
 // Helper — exibe o estado do contexto na tela
@@ -20,11 +48,6 @@ function AuthDisplay(): JSX.Element {
             <span data-testid="admin">{isAdmin ? "admin" : "normal"}</span>
         </div>
     );
-}
-
-function LogoutButton(): JSX.Element {
-    const { logout } = useAutenticacao();
-    return <button onClick={logout}>Sair</button>;
 }
 
 // ──────────────────────────────────────────────────────
@@ -131,92 +154,5 @@ describe("ContextoAutenticacao — login", () => {
         await userEvent.click(screen.getByText("Entrar"));
 
         expect(screen.getByTestId("username")).toHaveTextContent("testuser");
-    });
-});
-
-// ──────────────────────────────────────────────────────
-// Logout
-// ──────────────────────────────────────────────────────
-describe("ContextoAutenticacao — logout", () => {
-    it("logout remove access do localStorage", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
-        renderWithProviders(<LogoutButton />);
-        await userEvent.click(screen.getByText("Sair"));
-        expect(localStorage.getItem("access")).toBeNull();
-    });
-
-    it("logout remove refresh do localStorage", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
-        renderWithProviders(<LogoutButton />);
-        await userEvent.click(screen.getByText("Sair"));
-        expect(localStorage.getItem("refresh")).toBeNull();
-    });
-
-    it("logout redefine isAuthenticated para false", async () => {
-        localStorage.setItem("access", makeFakeToken());
-
-        function LogoutDisplay(): JSX.Element {
-            const { logout, isAuthenticated } = useAutenticacao();
-            return (
-                <div>
-                    <button onClick={logout}>Sair</button>
-                    <span data-testid="auth">
-                        {isAuthenticated ? "autenticado" : "anonimo"}
-                    </span>
-                </div>
-            );
-        }
-
-        renderWithProviders(<LogoutDisplay />);
-        expect(screen.getByTestId("auth")).toHaveTextContent("autenticado");
-        await act(async () => {
-            await userEvent.click(screen.getByText("Sair"));
-        });
-        expect(screen.getByTestId("auth")).toHaveTextContent("anonimo");
-    });
-
-    it("logout redefine username para null", async () => {
-        localStorage.setItem("access", makeFakeToken());
-
-        function LogoutDisplay(): JSX.Element {
-            const { logout, username } = useAutenticacao();
-            return (
-                <div>
-                    <button onClick={logout}>Sair</button>
-                    <span data-testid="username">{username ?? "nenhum"}</span>
-                </div>
-            );
-        }
-
-        renderWithProviders(<LogoutDisplay />);
-        await act(async () => {
-            await userEvent.click(screen.getByText("Sair"));
-        });
-        expect(screen.getByTestId("username")).toHaveTextContent("nenhum");
-    });
-
-    it("logout redefine isAdmin para false", async () => {
-        localStorage.setItem("access", makeFakeToken(true));
-
-        function LogoutDisplay(): JSX.Element {
-            const { logout, isAdmin } = useAutenticacao();
-            return (
-                <div>
-                    <button onClick={logout}>Sair</button>
-                    <span data-testid="admin">
-                        {isAdmin ? "admin" : "normal"}
-                    </span>
-                </div>
-            );
-        }
-
-        renderWithProviders(<LogoutDisplay />);
-        expect(screen.getByTestId("admin")).toHaveTextContent("admin");
-        await act(async () => {
-            await userEvent.click(screen.getByText("Sair"));
-        });
-        expect(screen.getByTestId("admin")).toHaveTextContent("normal");
     });
 });
