@@ -159,7 +159,7 @@ def test_categoria_invalida_mantem_estado(
     usuario: User, categoria: Categoria
 ) -> None:
     processar_mensagem(CHAT_ID, "1")
-    processar_mensagem(CHAT_ID, "25.50")
+    processar_mensagem(CHAT_ID, "25,50")
     resposta = processar_mensagem(CHAT_ID, "99")
     assert "inválida" in resposta.lower()
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
@@ -170,7 +170,7 @@ def test_categoria_invalida_mantem_estado(
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_fluxo_gasto_completo(usuario: User, categoria: Categoria) -> None:
     processar_mensagem(CHAT_ID, "1")
-    processar_mensagem(CHAT_ID, "25.50")
+    processar_mensagem(CHAT_ID, "25,50")
     processar_mensagem(CHAT_ID, "1")
     resposta = processar_mensagem(CHAT_ID, "s")
 
@@ -188,7 +188,7 @@ def test_fluxo_gasto_cancelado_na_confirmacao(
     usuario: User, categoria: Categoria
 ) -> None:
     processar_mensagem(CHAT_ID, "1")
-    processar_mensagem(CHAT_ID, "25.50")
+    processar_mensagem(CHAT_ID, "25,50")
     processar_mensagem(CHAT_ID, "1")
     resposta = processar_mensagem(CHAT_ID, "n")
 
@@ -216,7 +216,7 @@ def test_opcao_2_solicita_valor(usuario: User) -> None:
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_fluxo_entrada_completa(usuario: User, fonte: Fonte) -> None:
     processar_mensagem(CHAT_ID, "2")
-    processar_mensagem(CHAT_ID, "3000.00")
+    processar_mensagem(CHAT_ID, "3.000,00")
     processar_mensagem(CHAT_ID, "1")
     resposta = processar_mensagem(CHAT_ID, "s")
 
@@ -230,7 +230,7 @@ def test_fluxo_entrada_completa(usuario: User, fonte: Fonte) -> None:
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_fluxo_entrada_cancelada(usuario: User, fonte: Fonte) -> None:
     processar_mensagem(CHAT_ID, "2")
-    processar_mensagem(CHAT_ID, "3000.00")
+    processar_mensagem(CHAT_ID, "3.000,00")
     processar_mensagem(CHAT_ID, "1")
     resposta = processar_mensagem(CHAT_ID, "n")
 
@@ -281,7 +281,7 @@ def test_gasto_via_whatsapp_gera_log_auditoria(
     usuario: User, categoria: Categoria
 ) -> None:
     processar_mensagem(CHAT_ID, "1")
-    processar_mensagem(CHAT_ID, "50.00")
+    processar_mensagem(CHAT_ID, "50,00")
     processar_mensagem(CHAT_ID, "1")
     processar_mensagem(CHAT_ID, "s")
 
@@ -296,7 +296,7 @@ def test_entrada_via_whatsapp_gera_log_auditoria(
     usuario: User, fonte: Fonte
 ) -> None:
     processar_mensagem(CHAT_ID, "2")
-    processar_mensagem(CHAT_ID, "1500.00")
+    processar_mensagem(CHAT_ID, "1.500,00")
     processar_mensagem(CHAT_ID, "1")
     processar_mensagem(CHAT_ID, "s")
 

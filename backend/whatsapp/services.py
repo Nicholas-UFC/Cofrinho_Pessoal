@@ -1,3 +1,4 @@
+import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
@@ -119,12 +120,21 @@ def _verificar_rate_limit(
     )
 
 
+# Aceita: inteiro (25), milhar com ponto (25.000, 1.000.000),
+# decimal com vírgula (25,00), ou combinação (5.000,50).
+# Ponto exige exatamente 3 dígitos após ele. Vírgula exige exatamente 2.
+_REGEX_VALOR = re.compile(r"^\d{1,3}(\.\d{3})*(,\d{2})?$")
+
+
 def _parse_valor(texto: str) -> Decimal | None:
+    if not _REGEX_VALOR.match(texto):
+        return None
+    normalizado = texto.replace(".", "").replace(",", ".")
     try:
-        valor = Decimal(texto.replace(",", "."))
-        return valor if valor > 0 else None
+        valor = Decimal(normalizado).quantize(Decimal("0.01"))
     except InvalidOperation:
         return None
+    return valor if valor > 0 else None
 
 
 # ---------------------------------------------------------------------------
@@ -171,12 +181,12 @@ def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
     if corpo == "1":
         sessao.estado = "aguardando_valor_gasto"
         sessao.save()
-        return "Qual o valor do gasto? (ex: 25.50)\nDigite 0 para cancelar."
+        return "Qual o valor do gasto? (ex: 25,50 ou 1.500,00)\nDigite 0 para cancelar."
     if corpo == "2":
         sessao.estado = "aguardando_valor_entrada"
         sessao.save()
         return (
-            "Qual o valor da entrada? (ex: 3000.00)\n"
+            "Qual o valor da entrada? (ex: 3.000,00)\n"
             "Digite 0 para cancelar."
         )
     if corpo == "3":
@@ -197,7 +207,7 @@ def _processar_valor_gasto(sessao: SessaoConversa, corpo: str) -> str:
     valor = _parse_valor(corpo)
     if valor is None:
         return (
-            "⚠️ Valor inválido. Digite um número positivo (ex: 25.50)\n"
+            "⚠️ Valor inválido. Digite um número positivo (ex: 25,50 ou 1.500,00)\n"
             "Digite 0 para cancelar."
         )
 
@@ -268,7 +278,7 @@ def _processar_valor_entrada(sessao: SessaoConversa, corpo: str) -> str:
     valor = _parse_valor(corpo)
     if valor is None:
         return (
-            "⚠️ Valor inválido. Digite um número positivo (ex: 3000.00)\n"
+            "⚠️ Valor inválido. Digite um número positivo (ex: 3.000,00)\n"
             "Digite 0 para cancelar."
         )
 
