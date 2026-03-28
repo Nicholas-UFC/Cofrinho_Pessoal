@@ -7,6 +7,31 @@ from rest_framework.test import APIClient
 from financas.models import Categoria, Fonte
 
 # ---------------------------------------------------------------------------
+# CRUD, isolamento e unicidade no endpoint de Categorias
+# ---------------------------------------------------------------------------
+#
+# Categorias são entidades de configuração: o usuário as cria uma vez e as
+# reutiliza em todos os gastos. Por isso, o endpoint de Categorias tem regras
+# ligeiramente diferentes dos endpoints de Gasto e Entrada:
+#
+# — A listagem retorna uma lista plana (sem paginação), pois o frontend precisa
+#   renderizar todas as categorias num <select> de uma só vez.
+# — Nomes duplicados para o mesmo usuário são proibidos (unique_together).
+#   Mas o mesmo nome pode existir para usuários diferentes — é uma restrição
+#   por usuário, não global.
+# — Isolamento multi-usuário: cada usuário vê apenas suas próprias categorias.
+#   Tentar acessar, editar ou excluir uma categoria de outro usuário retorna
+#   404.
+# — O campo `usuario` é somente-leitura: mesmo que o cliente envie outro
+#   ID, o backend vincula a categoria ao usuário autenticado via JWT.
+#
+# O teste de regressão de paginação (lista plana vs. dict paginado) foi movido
+# para `test_view_paginacao.py`, onde ficam concentrados os testes de estrutura
+# de resposta paginada e não-paginada.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -188,29 +213,3 @@ class TestCategoriaViewSet:
         assert cat.usuario == user
 
 
-# ---------------------------------------------------------------------------
-# Regressão — paginação desabilitada em Categoria e Fonte
-# ---------------------------------------------------------------------------
-# Bug: DEFAULT_PAGINATION_CLASS global fazia CategoriaViewSet e FonteViewSet
-# retornarem {count, next, previous, results:[]} em vez de lista plana.
-# O frontend chamava categorias.map() e recebia
-# "TypeError: categorias.map is not a function", travando /cadastro.
-
-
-@pytest.mark.django_db
-class TestCategoriaFonteSemPaginacao:
-    def test_categorias_retorna_lista_plana(
-        self, auth_client: APIClient, categoria: Categoria
-    ) -> None:
-        # Regressão: deve ser lista, não dict paginado {count, results}.
-        response = auth_client.get(reverse("categoria-list"))
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)
-
-    def test_fontes_retorna_lista_plana(
-        self, auth_client: APIClient, fonte: Fonte
-    ) -> None:
-        # Regressão: deve ser lista, não dict paginado {count, results}.
-        response = auth_client.get(reverse("fonte-list"))
-        assert response.status_code == status.HTTP_200_OK
-        assert isinstance(response.data, list)

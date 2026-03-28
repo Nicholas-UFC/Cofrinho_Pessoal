@@ -6,6 +6,36 @@ import { renderWithProviders } from "../../test/utils";
 import { server } from "../../test/server";
 import PaginaCadastro from "../PaginaCadastro";
 
+/*
+ * PaginaCadastro — testes de fluxo completo de cadastro
+ * -------------------------------------------------------
+ *
+ * A PaginaCadastro é a tela principal de entrada de dados financeiros.
+ * Ela agrupa quatro formulários em abas: Gasto, Entrada, Categoria e
+ * Fonte. O usuário alterna entre elas clicando nos botões de aba, e
+ * cada aba renderiza seu próprio formulário com campos específicos.
+ *
+ * O que é verificado:
+ *
+ * — Renderização: todas as quatro abas estão presentes e o formulário
+ *   correto é exibido para cada uma.
+ *
+ * — Fluxo feliz: preencher e submeter cada formulário produz a mensagem
+ *   de sucesso correspondente (gasto, entrada, categoria, fonte).
+ *
+ * — Erro de API: quando o endpoint retorna 400, a mensagem de erro da
+ *   resposta é exibida abaixo do formulário.
+ *
+ * — Regressão de categorias: a API retorna categorias e fontes num
+ *   envelope paginado {count, next, previous, results:[]}. Se o
+ *   componente passar o objeto inteiro para `.map()` em vez de
+ *   `.results`, a página trava com TypeError. O teste garante que o
+ *   select de Categoria está populado com opções reais.
+ *
+ * — Troca de aba: trocar de aba deve limpar mensagens de sucesso e
+ *   erro da aba anterior, evitando que o usuário veja feedback obsoleto.
+ */
+
 describe("PaginaCadastro", () => {
     it("renderiza as quatro abas", async () => {
         renderWithProviders(<PaginaCadastro />);

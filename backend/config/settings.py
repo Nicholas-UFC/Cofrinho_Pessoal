@@ -24,6 +24,7 @@ DJANGO_APPS = [
 
 LOCAL_APPS = [
     "financas",
+    "whatsapp",
 ]
 
 THIRD_PARTY_APPS = [
@@ -178,5 +179,12 @@ CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
 # django-axes
 AXES_FAILURE_LIMIT = 5
+
+# WAHA — WhatsApp HTTP API
+WAHA_API_URL = env("WAHA_API_URL", default="http://localhost:3000")
+WAHA_API_KEY = env("WAHA_API_KEY", default="")
+WAHA_GROUP_ID = env("WAHA_GROUP_ID", default="")
+WAHA_SESSION = env("WAHA_SESSION", default="default")
+WAHA_OWNER_USERNAME = env("WAHA_OWNER_USERNAME", default="")
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]

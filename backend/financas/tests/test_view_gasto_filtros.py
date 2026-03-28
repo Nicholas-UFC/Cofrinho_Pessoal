@@ -10,6 +10,25 @@ from rest_framework.test import APIClient
 from financas.models import Categoria, Gasto
 
 # ---------------------------------------------------------------------------
+# Filtros de busca no endpoint de Gastos
+# ---------------------------------------------------------------------------
+#
+# O endpoint de Gastos suporta filtros via query string que permitem ao
+# frontend exibir subconjuntos dos registros do usuário. Esses filtros são
+# combinados com o isolamento multi-usuário — um usuário nunca consegue
+# filtrar dados de outro.
+#
+# Filtros testados:
+# — `?categoria=<id>`: retorna apenas os gastos daquela categoria. Permite
+#   ao usuário ver quanto gastou em Alimentação, Transporte, etc.
+# — `?data__gte=<data>`: retorna gastos a partir de uma data (inclusive).
+#   Útil para filtrar gastos do mês atual ou de um período específico.
+# — `?valor__lte=<valor>`: retorna gastos com valor até o informado.
+#   Útil para encontrar gastos pequenos abaixo de um certo teto.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

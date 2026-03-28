@@ -4,6 +4,32 @@ import userEvent from "@testing-library/user-event";
 import { FormularioGasto } from "../FormularioGasto";
 import type { Categoria } from "../../../api/financas";
 
+/*
+ * FormularioGasto — testes de campos, submit e estados
+ * -----------------------------------------------------
+ *
+ * O FormularioGasto é um componente controlado que recebe a lista de
+ * categorias disponíveis via prop e chama `onSubmit` com os quatro
+ * campos preenchidos: descrição, valor, data e categoria.
+ *
+ * Os testes são divididos em três grupos:
+ *
+ * 1. CAMPOS: os quatro campos obrigatórios (Descrição, Valor, Data e
+ *    Categoria) estão presentes com seus respectivos labels. O select
+ *    de Categoria exibe as opções recebidas via prop.
+ *
+ * 2. SUBMIT: ao preencher todos os campos e clicar em "Registrar
+ *    Gasto", `onSubmit` é chamado com os valores corretos. Após o
+ *    submit, os campos Descrição e Valor são limpos para que o
+ *    usuário possa registrar o próximo gasto imediatamente — a data
+ *    e a categoria são mantidas para conveniência.
+ *
+ * 3. ESTADOS: o componente reflete os estados recebidos via props —
+ *    durante loading o botão exibe "Salvando..." e fica desabilitado,
+ *    e as mensagens de sucesso/erro são exibidas conforme fornecidas
+ *    pelo componente pai (PaginaCadastro).
+ */
+
 const categorias: Categoria[] = [
     { id: 1, nome: "Alimentação", criado_em: "2026-01-01" },
     { id: 2, nome: "Transporte", criado_em: "2026-01-01" },

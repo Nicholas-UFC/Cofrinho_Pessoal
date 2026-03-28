@@ -9,6 +9,36 @@ import { server } from "../../test/server";
 import PaginaLogin from "../PaginaLogin";
 import type { JSX } from "react";
 
+/*
+ * PaginaLogin — testes do formulário de autenticação
+ * ---------------------------------------------------
+ *
+ * A PaginaLogin é a porta de entrada da aplicação. Ela exibe um
+ * formulário de usuário e senha, faz a chamada ao endpoint de token
+ * JWT e, em caso de sucesso, redireciona para /dashboard. Se o
+ * usuário já estiver autenticado (token válido no localStorage), deve
+ * ser redirecionado imediatamente sem ver o formulário.
+ *
+ * O que é verificado:
+ *
+ * — Renderização: título, campos de usuário e senha, e botão Entrar
+ *   estão presentes na tela.
+ *
+ * — Fluxo feliz: após preencher credenciais válidas e submeter, o
+ *   MSW retorna os tokens e o componente redireciona para /dashboard.
+ *
+ * — Credenciais inválidas: quando o endpoint retorna 401, a mensagem
+ *   "credenciais inválidas" é exibida abaixo do formulário — sem
+ *   redirecionar nem travar a tela.
+ *
+ * — Já autenticado: se o localStorage já contém um token válido ao
+ *   montar a página, o React Router redireciona para /dashboard
+ *   imediatamente, sem exibir o formulário.
+ *
+ * — Estado de loading: enquanto a requisição está pendente, o botão
+ *   exibe "Entrando..." e fica desabilitado para evitar duplo submit.
+ */
+
 function DashboardMock(): JSX.Element {
     return <div>Dashboard</div>;
 }

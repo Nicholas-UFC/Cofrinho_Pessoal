@@ -1,11 +1,12 @@
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from financas.serializers import CustomTokenObtainPairSerializer
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+
+from financas.serializers import CustomTokenObtainPairSerializer
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -32,4 +33,6 @@ urlpatterns = [
     ),
     # URLs do app financas — definidas em financas/urls.py.
     path("api/financas/", include("financas.urls")),
+    # URLs do app whatsapp — webhook do WAHA.
+    path("api/whatsapp/", include("whatsapp.urls")),
 ]

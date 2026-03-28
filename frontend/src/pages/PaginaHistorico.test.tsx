@@ -7,6 +7,36 @@ import { makeFakeToken } from "../test/handlers";
 import { server } from "../test/server";
 import PaginaHistorico from "./PaginaHistorico";
 
+/*
+ * PaginaHistorico — testes de exibição, abas, paginação e erros
+ * --------------------------------------------------------------
+ *
+ * A PaginaHistorico exibe o histórico financeiro do usuário em duas
+ * abas: Gastos e Entradas. Cada aba busca os dados do endpoint
+ * correspondente, formata os valores em BRL e exibe a categoria/fonte
+ * de cada registro.
+ *
+ * Os testes são divididos em cinco grupos:
+ *
+ * 1. LISTA DE GASTOS: verifica que os dados chegam corretamente da API
+ *    e são exibidos — descrição, categoria, valor formatado em BRL e
+ *    contagem total de registros.
+ *
+ * 2. ALTERNÂNCIA DE ABAS: clicar em "Entradas" substitui a lista de
+ *    gastos pela lista de entradas. Entradas devem aparecer em verde
+ *    para sinalizar que são receitas, não despesas.
+ *
+ * 3. PAGINAÇÃO: os botões Anterior e Próxima refletem corretamente o
+ *    estado da paginação — desabilitados quando não há mais páginas,
+ *    habilitados quando o campo `next` da API não é nulo.
+ *
+ * 4. ESTADO VAZIO: quando a API retorna uma lista vazia, a tela exibe
+ *    uma mensagem amigável em vez de uma tabela vazia sem contexto.
+ *
+ * 5. ERRO DE API: quando o endpoint falha com 500, a tela exibe uma
+ *    mensagem de erro clara para o usuário.
+ */
+
 describe("PaginaHistorico — lista de gastos", () => {
     it("exibe os gastos carregados da API", async () => {
         localStorage.setItem("access", makeFakeToken());

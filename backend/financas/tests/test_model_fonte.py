@@ -11,6 +11,22 @@ from django.utils import timezone
 from financas.models import Entrada, Fonte
 
 # ---------------------------------------------------------------------------
+# Testes de modelo — Fonte
+# ---------------------------------------------------------------------------
+#
+# Fonte é o modelo de lookup para classificar entradas financeiras (ex:
+# "Salário", "Freelance", "Dividendos"). Segue as mesmas regras de Categoria:
+#
+# — Nome tem max_length=100; ultrapassar dispara ValidationError.
+# — O par (nome, usuario) é único por usuário; duplicata gera IntegrityError.
+#   Usuários diferentes podem ter fontes com o mesmo nome.
+# — `criado_em` é auto_now_add e imutável.
+# — Deletar uma Fonte que ainda tem Entradas associadas lança ProtectedError.
+# — Deletar uma Fonte sem Entradas funciona normalmente.
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
 # Fixture de usuário compartilhada
 # ---------------------------------------------------------------------------
 

@@ -1,8 +1,3 @@
-"""
-Testes de integracao do sistema de auditoria.
-Verifica que LogAcesso e LogAuditoria sao gerados juntos ao chamar endpoints.
-"""
-
 from datetime import date
 
 import pytest
@@ -11,6 +6,32 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from financas.models import Categoria, Fonte, Gasto, LogAcesso, LogAuditoria
+
+# ---------------------------------------------------------------------------
+# Integração do sistema de auditoria — LogAcesso + LogAuditoria juntos
+# ---------------------------------------------------------------------------
+#
+# O sistema de auditoria do projeto tem duas camadas independentes que devem
+# funcionar em conjunto quando o usuário chama um endpoint:
+#
+# 1. LogAcesso (middleware): registra cada requisição HTTP com metadados como
+#    endpoint, método, IP, usuário, origem e duração. É transparente para a
+#    view — acontece antes e depois, sem que a view precise fazer nada.
+#
+# 2. LogAuditoria (signals): registra cada operação de CRUD nos models com
+#    a ação realizada e os detalhes do objeto afetado. É disparado pelos
+#    signals do Django ao salvar ou deletar um objeto.
+#
+# Esta suíte testa que as duas camadas operam juntas corretamente em cenários
+# reais — uma chamada a POST /gastos/ deve gerar tanto um LogAcesso quanto um
+# LogAuditoria. Também cobre edge cases importantes:
+# — Bulk delete/update em queryset vazio não deve gerar logs espúrios.
+# — Deletar um usuário deve preservar os logs existentes (com usuario=None),
+#   garantindo que a trilha de auditoria não seja perdida junto com a conta.
+# — O middleware detecta a origem correta (api, web, whatsapp) e o IP real
+#   mesmo quando há um proxy reverso (via X-Forwarded-For).
+# ---------------------------------------------------------------------------
+
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -21,7 +21,7 @@ cd Cofrinho_Pessoal
 cp .env.example .env
 ```
 
-Edite o `.env` com os valores desejados (banco, secret key, etc.).
+Edite o `.env` com os valores desejados (banco, secret key, WAHA, etc.).
 
 **3. Suba os containers:**
 
@@ -29,7 +29,8 @@ Edite o `.env` com os valores desejados (banco, secret key, etc.).
 docker compose up -d
 ```
 
-Isso inicia o PostgreSQL (5432), o backend Django (8000) e o frontend React (5173).
+Isso inicia o PostgreSQL (5432), o backend Django (8000), o frontend React (5173)
+e o WAHA (3000).
 
 **4. Crie o superusuário:**
 
@@ -37,12 +38,32 @@ Isso inicia o PostgreSQL (5432), o backend Django (8000) e o frontend React (517
 docker exec cofrinho_backend .venv/bin/python manage.py createsuperuser
 ```
 
-| Serviço  | URL                                  |
-|----------|--------------------------------------|
-| Frontend | <http://localhost:5173>              |
-| API      | <http://localhost:8000>              |
-| Admin    | <http://localhost:8000/admin>        |
-| Swagger  | <http://localhost:8000/api/docs>     |
+| Serviço        | URL                                  |
+|----------------|--------------------------------------|
+| Frontend       | <http://localhost:5173>              |
+| API            | <http://localhost:8000>              |
+| Admin          | <http://localhost:8000/admin>        |
+| Swagger        | <http://localhost:8000/api/docs>     |
+| WAHA Dashboard | <http://localhost:3000>              |
+
+---
+
+## Variáveis de ambiente do WhatsApp
+
+O bot do WhatsApp requer as seguintes variáveis no `.env`:
+
+| Variável                  | Descrição                                               |
+|---------------------------|---------------------------------------------------------|
+| `WAHA_API_URL`            | URL do container WAHA (ex: `http://waha:3000`)          |
+| `WAHA_API_KEY`            | Chave de autenticação da API WAHA                       |
+| `WAHA_GROUP_ID`           | ID do grupo WhatsApp monitorado pelo bot                |
+| `WAHA_SESSION`            | Nome da sessão WAHA (padrão: `default`)                 |
+| `WAHA_OWNER_USERNAME`     | Username Django do dono da conta (recebe os registros)  |
+| `WAHA_DASHBOARD_USERNAME` | Usuário do painel web do WAHA                           |
+| `WAHA_DASHBOARD_PASSWORD` | Senha do painel web do WAHA                             |
+
+Para conectar o WhatsApp, acesse o [WAHA Dashboard](http://localhost:3000),
+inicie uma sessão e escaneie o QR code com o celular.
 
 ---
 

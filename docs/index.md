@@ -6,7 +6,9 @@ Aplicação pessoal para controle de gastos e entradas de dinheiro.
 
 O Cofrinho Pessoal permite registrar **gastos** e **entradas** de dinheiro,
 organizados por categorias e fontes de renda. Possui interface web com tema
-escuro, API REST com autenticação JWT e documentação interativa via Swagger.
+escuro, API REST com autenticação JWT, documentação interativa via Swagger e
+um **bot para WhatsApp** que permite registrar movimentações diretamente pelo
+celular, sem abrir o navegador.
 
 ## Funcionalidades atuais
 
@@ -21,7 +23,8 @@ escuro, API REST com autenticação JWT e documentação interativa via Swagger.
 - Endpoint de resumo financeiro com saldo e gastos por categoria
 - Isolamento multi-usuário (cada usuário vê apenas seus próprios dados)
 - Análise estática automática via pre-commit: complexidade ciclomática (xenon), tamanho de arquivos (500 linhas) e ESLint complexity
-- Testes automatizados: backend (117 testes, 98% cobertura) e frontend (113 testes)
+- **Bot para WhatsApp** — registre gastos, entradas e consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
+- Testes automatizados: backend (251 testes, 97% cobertura) e frontend (113 testes)
 
 ## Stack
 
@@ -34,9 +37,11 @@ escuro, API REST com autenticação JWT e documentação interativa via Swagger.
 | Autenticação  | JWT via SimpleJWT                    |
 | Documentação  | drf-spectacular (Swagger UI)         |
 | Containers    | Docker + Docker Compose              |
+| WhatsApp      | WAHA (WhatsApp HTTP API)             |
 
 ## Links úteis
 
 - [Frontend](http://localhost:5173) — interface web
 - [Swagger UI](http://localhost:8000/api/docs/) — documentação interativa da API
 - [Django Admin](http://localhost:8000/admin/) — painel de administração
+- [WAHA Dashboard](http://localhost:3000) — gerenciamento da sessão WhatsApp

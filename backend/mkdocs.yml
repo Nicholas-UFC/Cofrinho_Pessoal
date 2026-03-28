@@ -38,3 +38,6 @@ nav:
     - Fonte: modelos/fonte.md
     - Gasto: modelos/gasto.md
     - Entrada: modelos/entrada.md
+  - WhatsApp:
+    - Como funciona: whatsapp/bot.md
+    - Configuração: whatsapp/configuracao.md

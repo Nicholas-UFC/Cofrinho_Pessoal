@@ -4,6 +4,30 @@ import userEvent from "@testing-library/user-event";
 import { FormularioEntrada } from "../FormularioEntrada";
 import type { Fonte } from "../../../api/financas";
 
+/*
+ * FormularioEntrada — testes de campos, submit e estados
+ * -------------------------------------------------------
+ *
+ * O FormularioEntrada é o espelho do FormularioGasto para receitas.
+ * Ele recebe a lista de fontes disponíveis via prop e chama `onSubmit`
+ * com os quatro campos preenchidos: descrição, valor, data e fonte.
+ *
+ * Os testes são divididos em três grupos:
+ *
+ * 1. CAMPOS: os quatro campos obrigatórios (Descrição, Valor, Data e
+ *    Fonte) estão presentes com seus respectivos labels. O select de
+ *    Fonte exibe as opções recebidas via prop.
+ *
+ * 2. SUBMIT: ao preencher todos os campos e clicar em "Registrar
+ *    Entrada", `onSubmit` é chamado com os valores corretos. Após o
+ *    submit, os campos Descrição e Valor são limpos — mesma convenção
+ *    do FormularioGasto para agilizar cadastros repetidos.
+ *
+ * 3. ESTADOS: durante loading o botão exibe "Salvando..." e fica
+ *    desabilitado para evitar duplo submit. As mensagens de sucesso
+ *    e erro são exibidas conforme fornecidas pelo componente pai.
+ */
+
 const fontes: Fonte[] = [
     { id: 1, nome: "Salário", criado_em: "2026-01-01" },
     { id: 2, nome: "Nubank", criado_em: "2026-01-01" },

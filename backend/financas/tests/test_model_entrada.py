@@ -9,6 +9,24 @@ from django.utils import timezone
 
 from financas.models import Entrada, Fonte
 
+# ---------------------------------------------------------------------------
+# Testes de modelo — Entrada
+# ---------------------------------------------------------------------------
+#
+# Esta suíte testa as regras de negócio do model Entrada diretamente via ORM,
+# sem passar pela camada de API. A Entrada representa qualquer ingresso de
+# dinheiro (salário, freelance, rendimento) e segue as mesmas regras de
+# integridade do modelo Gasto:
+#
+# — Valor deve ser positivo: zero e negativo disparam ValidationError via
+#   `full_clean()` e IntegrityError via CheckConstraint no banco.
+# — `descricao` tem max_length=200; extrapolação dispara ValidationError.
+# — `fonte` é obrigatória — Entrada sem Fonte viola a constraint de NOT NULL.
+# — `criado_em` é auto_now_add e imutável: qualquer tentativa de sobrescrever
+#   é silenciosamente ignorada pelo Django ao salvar.
+# — Ordenação padrão: data mais recente primeiro.
+# ---------------------------------------------------------------------------
+
 _MSG_POSITIVO = "Apenas valores positivos são permitidos."
 
 

@@ -5,6 +5,34 @@ import { renderWithProviders } from "../test/utils";
 import { makeFakeToken } from "../test/handlers";
 import MenuLateral from "./MenuLateral";
 
+/*
+ * MenuLateral — testes de navegação, logout e comportamento mobile
+ * ----------------------------------------------------------------
+ *
+ * O MenuLateral é o drawer de navegação da aplicação. Em desktop fica
+ * sempre visível; em mobile é um drawer deslizante controlado pelas
+ * props `open` e `onClose`. Ele exibe os links principais da aplicação
+ * e um botão de logout.
+ *
+ * Os testes são divididos em três grupos:
+ *
+ * 1. NAVEGAÇÃO: os três links principais (Dashboard, Cadastro e
+ *    Histórico) devem estar presentes e apontar para as rotas corretas.
+ *    Isso garante que uma refatoração de rotas não quebra os links
+ *    silenciosamente.
+ *
+ * 2. LOGOUT: o botão Logout deve acionar o contexto de autenticação e
+ *    limpar ambos os tokens do localStorage — tanto o access quanto o
+ *    refresh — para que o interceptor do axios não tente um refresh
+ *    automático após o logout.
+ *
+ * 3. MOBILE: no modo drawer, o botão de fechar (×) chama `onClose`.
+ *    Clicar em qualquer link de navegação também chama `onClose` para
+ *    fechar o drawer automaticamente. A classe CSS de translação
+ *    (`-translate-x-full` / `translate-x-0`) muda conforme `open`,
+ *    garantindo a animação de abertura/fechamento.
+ */
+
 const defaultProps = { open: true, onClose: vi.fn() };
 
 describe("MenuLateral — navegação", () => {
