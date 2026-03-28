@@ -12,7 +12,8 @@ from whatsapp.services import PREFIXO_BOT, enviar_mensagem, processar_mensagem
 logger = logging.getLogger(__name__)
 
 _IGNORADO = JsonResponse({"status": "ignorado"})
-_MAX_BODY_BYTES = 2 * 1024 * 1024  # 2 MB — suficiente para texto, bloqueia mídia
+# 2 MB — suficiente para texto, bloqueia payloads de mídia
+_MAX_BODY_BYTES = 2 * 1024 * 1024
 
 
 def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:

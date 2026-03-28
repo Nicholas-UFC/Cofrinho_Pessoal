@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.test import override_settings
 
 from financas.models import Categoria, Gasto
+from whatsapp.models import SessaoConversa
 from whatsapp.services import processar_mensagem
 
 CHAT_ID = "120363423218993414@g.us"
@@ -20,14 +21,18 @@ OWNER = "dono"
 #   1. Usuário digita "1" → bot pede o valor do gasto
 #   2. Usuário digita o valor (ex: "25,50") → bot pede a categoria
 #   3. Usuário digita o número da categoria → bot pede confirmação
-#   4. Usuário confirma com "s" → gasto registrado / cancela com "n" → cancelado
+#   4. Usuário confirma com "s" → gasto registrado / cancela com "n"
+#      → cancelado
 #
 # Casos de borda testados:
-# — Valor inválido (texto, negativo, zero): estado deve permanecer na mesma etapa
-# — Valor com espaçamento: "25 , 50", "5 . 000 , 50" etc. devem ser aceitos após
-#   normalização — espaços são removidos antes do parse do valor monetário
+# — Valor inválido (texto, negativo, zero): estado deve permanecer na
+#   mesma etapa
+# — Valor com espaçamento: "25 , 50", "5 . 000 , 50" etc. devem ser
+#   aceitos após normalização — espaços são removidos antes do parse
+#   do valor monetário
 # — Categoria inexistente: deve manter estado e pedir novamente
-# — Cancelar em qualquer etapa com "0": retorna ao menu principal sem salvar nada
+# — Cancelar em qualquer etapa com "0": retorna ao menu principal sem
+#   salvar nada
 #
 # O valor monetário aceito segue o padrão brasileiro:
 # — Separador de milhar: ponto (somente grupos de 3 dígitos)
@@ -62,7 +67,10 @@ def categoria(usuario: User) -> Categoria:
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_valor_com_espacos_e_aceito(
-    valor_digitado: str, valor_esperado: Decimal, usuario: User, categoria: Categoria
+    valor_digitado: str,
+    valor_esperado: Decimal,
+    usuario: User,
+    categoria: Categoria,
 ) -> None:
     """Espaços no valor monetário são ignorados antes da validação."""
     processar_mensagem(CHAT_ID, "1")
@@ -83,7 +91,6 @@ def test_opcao_1_solicita_valor(usuario: User) -> None:
     resposta = processar_mensagem(CHAT_ID, "1")
     assert "valor do gasto" in resposta.lower()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "aguardando_valor_gasto"
 
@@ -95,7 +102,6 @@ def test_valor_gasto_invalido_mantem_estado(usuario: User) -> None:
     resposta = processar_mensagem(CHAT_ID, "abc")
     assert "inválido" in resposta.lower()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "aguardando_valor_gasto"
 
@@ -107,7 +113,6 @@ def test_cancelar_no_valor_volta_ao_menu(usuario: User) -> None:
     resposta = processar_mensagem(CHAT_ID, "0")
     assert "Cofrinho Pessoal" in resposta
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "menu"
 
@@ -122,7 +127,6 @@ def test_categoria_invalida_mantem_estado(
     resposta = processar_mensagem(CHAT_ID, "99")
     assert "inválida" in resposta.lower()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "aguardando_categoria_gasto"
 
@@ -145,7 +149,6 @@ def test_fluxo_gasto_completo(usuario: User, categoria: Categoria) -> None:
         usuario=usuario, valor=Decimal("25.50")
     ).exists()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "menu"
 
@@ -163,6 +166,5 @@ def test_fluxo_gasto_cancelado_na_confirmacao(
     assert "cancelado" in resposta.lower()
     assert not Gasto.objects.filter(usuario=usuario).exists()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "menu"

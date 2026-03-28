@@ -20,7 +20,8 @@ from financas.models import Categoria, Fonte
 #   Mas o mesmo nome pode existir para usuários diferentes — é uma restrição
 #   por usuário, não global.
 # — Isolamento multi-usuário: cada usuário vê apenas suas próprias categorias.
-#   Tentar acessar, editar ou excluir uma categoria de outro usuário retorna 404.
+#   Tentar acessar, editar ou excluir uma categoria de outro usuário retorna
+#   404.
 # — O campo `usuario` é somente-leitura: mesmo que o cliente envie outro
 #   ID, o backend vincula a categoria ao usuário autenticado via JWT.
 #

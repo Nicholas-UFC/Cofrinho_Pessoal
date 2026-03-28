@@ -6,7 +6,6 @@ import pytest
 from django.test import Client, override_settings
 
 from financas.models import LogAcesso
-from whatsapp.services import PREFIXO_BOT
 
 GRUPO_ID = "120363423218993414@g.us"
 
@@ -44,8 +43,9 @@ def _post_webhook(client: Client, dados: dict) -> ...:
 # o problema de entrega é externo e não deve ser tratado como falha do webhook.
 #
 # Os testes de comandos verificam que o texto correto é enviado ao WAHA quando
-# o usuário digita um comando válido ou inválido — usando mock no `enviar_mensagem`
-# para inspecionar o argumento passado sem precisar de um servidor WAHA real.
+# o usuário digita um comando válido ou inválido — usando mock no
+# `enviar_mensagem` para inspecionar o argumento passado sem precisar de um
+# servidor WAHA real.
 #
 # O teste de auditoria garante que o middleware de LogAcesso registra a chamada
 # ao webhook com os metadados corretos, especialmente `origem = "whatsapp"`,

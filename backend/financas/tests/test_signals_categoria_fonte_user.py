@@ -4,14 +4,15 @@ from decimal import Decimal
 import pytest
 from django.contrib.auth.models import User
 
-from financas.models import Categoria, Entrada, Fonte, Gasto, LogAuditoria
+from financas.models import Categoria, Fonte, Gasto, LogAuditoria
 
 # ---------------------------------------------------------------------------
 # Signals de auditoria — Categoria, Fonte, User e integridade do log
 # ---------------------------------------------------------------------------
 #
-# Este arquivo testa os Django signals responsáveis por registrar no LogAuditoria
-# toda criação, atualização e deleção de Categoria, Fonte e do próprio User.
+# Este arquivo testa os Django signals responsáveis por registrar no
+# LogAuditoria toda criação, atualização e deleção de Categoria, Fonte e do
+# próprio User.
 #
 # Por que testar esses sinais separadamente?
 # — Categoria e Fonte são modelos de configuração (lookup tables) que o usuário
@@ -23,8 +24,9 @@ from financas.models import Categoria, Entrada, Fonte, Gasto, LogAuditoria
 #   salvos — mesmo depois que o registro do usuário for removido do banco.
 #
 # O teste de choices de LogAuditoria garante uma regressão importante:
-# `bulk_deletado` e `bulk_atualizado` precisam estar nas choices do model para
-# que o campo `acao` passe na validação do Django sem erros silenciosos de banco.
+# `bulk_deletado` e `bulk_atualizado` precisam estar nas choices do model
+# para que o campo `acao` passe na validação do Django sem erros silenciosos
+# de banco.
 # ---------------------------------------------------------------------------
 
 

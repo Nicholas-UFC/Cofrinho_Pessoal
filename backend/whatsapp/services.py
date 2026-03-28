@@ -212,7 +212,10 @@ def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
     if corpo == "1":
         sessao.estado = "aguardando_valor_gasto"
         sessao.save()
-        return "Qual o valor do gasto? (ex: 25,50 ou 1.500,00)\nDigite 0 para cancelar."
+        return (
+            "Qual o valor do gasto? (ex: 25,50 ou 1.500,00)\n"
+            "Digite 0 para cancelar."
+        )
     if corpo == "2":
         sessao.estado = "aguardando_valor_entrada"
         sessao.save()
@@ -238,7 +241,8 @@ def _processar_valor_gasto(sessao: SessaoConversa, corpo: str) -> str:
     valor = _parse_valor(corpo)
     if valor is None:
         return (
-            "⚠️ Valor inválido. Digite um número positivo (ex: 25,50 ou 1.500,00)\n"
+            "⚠️ Valor inválido. Digite um número positivo "
+            "(ex: 25,50 ou 1.500,00)\n"
             "Digite 0 para cancelar."
         )
 
@@ -456,7 +460,8 @@ def _salvar_entrada(sessao: SessaoConversa, usuario: User) -> None:
 # Cliente WAHA
 # ---------------------------------------------------------------------------
 
-# IDs das mensagens enviadas pelo bot — usados para ignorar o echo do message.any
+# IDs das mensagens enviadas pelo bot — usados para ignorar o echo do
+# message.any
 _ids_enviados: set[str] = set()
 _MAX_IDS_ENVIADOS = 200
 

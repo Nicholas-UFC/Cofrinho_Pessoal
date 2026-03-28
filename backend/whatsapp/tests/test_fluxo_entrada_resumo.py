@@ -5,7 +5,8 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import override_settings
 
-from financas.models import Entrada, Fonte, Gasto, Categoria, LogAuditoria
+from financas.models import Categoria, Entrada, Fonte, Gasto, LogAuditoria
+from whatsapp.models import SessaoConversa
 from whatsapp.services import processar_mensagem
 
 CHAT_ID = "120363423218993414@g.us"
@@ -61,7 +62,6 @@ def test_opcao_2_solicita_valor(usuario: User) -> None:
     resposta = processar_mensagem(CHAT_ID, "2")
     assert "valor da entrada" in resposta.lower()
 
-    from whatsapp.models import SessaoConversa
     sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
     assert sessao.estado == "aguardando_valor_entrada"
 

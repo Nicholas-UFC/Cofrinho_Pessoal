@@ -19,7 +19,8 @@ from financas.models import Categoria, Entrada, Fonte, Gasto, LogAuditoria
 # para a rastreabilidade financeira do usuário.
 #
 # O que é verificado:
-# — Criação: o signal gera um log com acao="criado" vinculado ao objeto correto.
+# — Criação: o signal gera um log com acao="criado" vinculado ao objeto
+#   correto.
 # — Atualização: salvar com `.save()` gera acao="atualizado".
 # — Deleção: deletar o objeto gera acao="deletado", preservando o
 #   objeto_id no log mesmo depois que o registro sumiu do banco.

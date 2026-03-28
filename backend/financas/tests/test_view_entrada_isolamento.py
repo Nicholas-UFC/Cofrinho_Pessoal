@@ -19,10 +19,10 @@ from financas.models import Entrada, Fonte
 # excluir uma entrada de outro usuário deve receber 404.
 #
 # O teste final verifica que o campo `usuario` é somente-leitura do ponto de
-# vista da API: mesmo que o cliente envie um ID diferente no corpo da requisição,
-# o serializer descarta esse valor e vincula o registro ao usuário do token JWT.
-# Isso é essencial para evitar que um cliente mal-intencionado tente associar
-# uma entrada financeira a outro usuário do sistema.
+# vista da API: mesmo que o cliente envie um ID diferente no corpo da
+# requisição, o serializer descarta esse valor e vincula o registro ao usuário
+# do token JWT. Isso é essencial para evitar que um cliente mal-intencionado
+# tente associar uma entrada financeira a outro usuário do sistema.
 # ---------------------------------------------------------------------------
 
 

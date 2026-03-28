@@ -19,9 +19,10 @@ from financas.models import Categoria, Gasto
 # qualquer tentativa de acessar um recurso alheio deve retornar 404 — como se
 # o registro simplesmente não existisse para aquele usuário.
 #
-# Também verificamos que o campo `usuario` no payload de criação é completamente
-# ignorado pelo serializer: mesmo que o cliente envie o PK de outro usuário, o
-# backend usa o usuário autenticado via token, impedindo escalação de privilégio.
+# Também verificamos que o campo `usuario` no payload de criação é
+# completamente ignorado pelo serializer: mesmo que o cliente envie o PK de
+# outro usuário, o backend usa o usuário autenticado via token, impedindo
+# escalação de privilégio.
 # ---------------------------------------------------------------------------
 
 
