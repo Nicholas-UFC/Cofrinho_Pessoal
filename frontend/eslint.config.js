@@ -76,4 +76,18 @@ export default defineConfig([
             "complexity": ["error", 10],
         },
     },
+    // Override para arquivos de teste — relaxa as regras de tipo estrito
+    // que conflitam com os matchers do Vitest/jest-axe/MSW
+    {
+        files: ["**/*.test.{ts,tsx}", "src/test/**/*.{ts,tsx}"],
+        rules: {
+            "@typescript-eslint/no-unsafe-assignment": "off",
+            "@typescript-eslint/no-unsafe-call": "off",
+            "@typescript-eslint/no-unsafe-member-access": "off",
+            "@typescript-eslint/no-unsafe-argument": "off",
+            "@typescript-eslint/no-unsafe-return": "off",
+            "@typescript-eslint/no-explicit-any": "off",
+            "@typescript-eslint/no-unsafe-enum-comparison": "off",
+        },
+    },
 ]);
