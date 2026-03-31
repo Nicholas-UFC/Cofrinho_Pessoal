@@ -6,6 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import Token
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
+from financas.validators import validar_caracteres_seguros
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -26,6 +27,7 @@ class CategoriaSerializer(serializers.ModelSerializer):
         read_only_fields: ClassVar = ["id", "criado_em"]
 
     def validate_nome(self, valor: str) -> str:
+        validar_caracteres_seguros(valor)
         # Garante unicidade do nome por usuário a nível de serializer,
         # já que usuario é excluído e o UniqueTogetherValidator não atua.
         usuario = self.context["request"].user
@@ -47,6 +49,7 @@ class FonteSerializer(serializers.ModelSerializer):
         read_only_fields: ClassVar = ["id", "criado_em"]
 
     def validate_nome(self, valor: str) -> str:
+        validar_caracteres_seguros(valor)
         # Garante unicidade do nome por usuário a nível de serializer.
         usuario = self.context["request"].user
         registros = Fonte.objects.filter(usuario=usuario, nome=valor)
@@ -70,6 +73,10 @@ class GastoSerializer(serializers.ModelSerializer):
         exclude: ClassVar = ["usuario"]
         read_only_fields: ClassVar = ["id", "criado_em", "categoria_nome"]
 
+    def validate_descricao(self, valor: str) -> str:
+        validar_caracteres_seguros(valor)
+        return valor
+
 
 # Serializer da tabela de entradas de dinheiro.
 class EntradaSerializer(serializers.ModelSerializer):
@@ -79,3 +86,7 @@ class EntradaSerializer(serializers.ModelSerializer):
         model = Entrada
         exclude: ClassVar = ["usuario"]
         read_only_fields: ClassVar = ["id", "criado_em", "fonte_nome"]
+
+    def validate_descricao(self, valor: str) -> str:
+        validar_caracteres_seguros(valor)
+        return valor
