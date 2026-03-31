@@ -1,7 +1,11 @@
+import sys
 from datetime import timedelta
 from pathlib import Path
 
 import environ
+
+# Detecta se estamos em modo de teste (pytest importado) para ajustar configs.
+_MODO_TESTE = "pytest" in sys.modules
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,6 +16,16 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
+# Segurança — cabeçalhos e cookies (sempre ativos, não só em produção).
+X_FRAME_OPTIONS = "DENY"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
 DJANGO_APPS = [
     "jazzmin",
     "django.contrib.admin",
@@ -20,6 +34,7 @@ DJANGO_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 LOCAL_APPS = [
@@ -49,6 +64,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "axes.middleware.AxesMiddleware",
     "financas.middleware.MiddlewareLogAcesso",
+    "financas.middleware.MiddlewareSecurityHeaders",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -89,12 +105,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation"
+        ".MinimumLengthValidator",
+        "OPTIONS": {"min_length": 12},
+    },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"  # noqa: E501
     },
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"  # noqa: E501
+    },
+    {
+        "NAME": "financas.validators.ValidadorComplexidadeSenha",
     },
 ]
 
@@ -158,6 +181,25 @@ REST_FRAMEWORK = {
         "rest_framework.pagination.PageNumberPagination"
     ),
     "PAGE_SIZE": 20,
+    # Rate limiting — OWASP prática 94.
+    # Em modo de teste o throttling é desabilitado para evitar contaminação
+    # entre testes; test_throttling.py re-habilita via override_settings.
+    "DEFAULT_THROTTLE_CLASSES": (
+        []
+        if _MODO_TESTE
+        else [
+            "rest_framework.throttling.AnonRateThrottle",
+            "rest_framework.throttling.UserRateThrottle",
+        ]
+    ),
+    "DEFAULT_THROTTLE_RATES": (
+        {}
+        if _MODO_TESTE
+        else {
+            "anon": "20/min",
+            "user": "200/min",
+        }
+    ),
 }
 
 # SimpleJWT
@@ -165,6 +207,8 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
+    # Blacklista o refresh anterior ao rotacionar — OWASP prática 62.
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 # drf-spectacular
@@ -174,8 +218,9 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "0.1.0",
 }
 
-# CORS
+# CORS — OWASP prática 92.
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+CORS_ALLOW_ALL_ORIGINS = False
 
 # django-axes
 AXES_FAILURE_LIMIT = 5
@@ -188,3 +233,74 @@ WAHA_SESSION = env("WAHA_SESSION", default="default")
 WAHA_OWNER_USERNAME = env("WAHA_OWNER_USERNAME", default="")
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
+
+# Logging estruturado — OWASP práticas 113-130.
+# Registra eventos de segurança (401, 403, 5xx) em arquivo e console.
+LOGS_DIR = BASE_DIR / "logs"
+LOGS_DIR.mkdir(exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "detalhado": {
+            "format": (
+                "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            ),
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "detalhado",
+        },
+        "arquivo_seguranca": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "seguranca.log",
+            "maxBytes": 10 * 1024 * 1024,  # 10 MB
+            "backupCount": 5,
+            "formatter": "detalhado",
+            "encoding": "utf-8",
+        },
+        "arquivo_erros": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "erros.log",
+            "maxBytes": 10 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "detalhado",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        # Eventos de segurança (auth, axes, JWT).
+        "django.security": {
+            "handlers": ["console", "arquivo_seguranca"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # Erros internos do servidor (5xx).
+        "django.request": {
+            "handlers": ["console", "arquivo_erros"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        # Axes — bloqueio de contas.
+        "axes": {
+            "handlers": ["console", "arquivo_seguranca"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # App local — whatsapp (falhas TLS, HTTP).
+        "whatsapp": {
+            "handlers": ["console", "arquivo_seguranca"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        # App local — financas.
+        "financas": {
+            "handlers": ["console", "arquivo_seguranca"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}

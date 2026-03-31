@@ -1,9 +1,9 @@
 from datetime import date
 from decimal import Decimal
-from typing import Any
 
 import pytest
 from django.contrib.auth.models import User
+from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
@@ -17,7 +17,7 @@ from financas.serializers import (
 _factory = APIRequestFactory()
 
 
-def _requisicao(usuario: User, metodo: str = "post") -> Any:
+def _requisicao(usuario: User, metodo: str = "post") -> Request:
     req = getattr(_factory, metodo)("/")
     req.user = usuario
     return req
