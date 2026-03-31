@@ -38,7 +38,7 @@ WhatsApp.
 - Documentação interativa via Swagger UI
 - **Bot para WhatsApp** — registre gastos, entradas e consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
 - Stack completa dockerizada (banco + backend + frontend + WAHA)
-- Testes automatizados: backend (pytest, 251 testes, 97% cobertura) e frontend (vitest, 113 testes)
+- Testes automatizados: backend (pytest, 251 testes, 97% cobertura) e frontend (vitest + jest-axe, 221 testes)
 
 ## O que ainda não está implementado
 
@@ -56,7 +56,7 @@ de consumo.
 
 ## Início rápido
 
-**Pré-requisitos:** Docker e Docker Compose instalados.
+**Pré-requisitos:** Docker e Docker Compose instalados. Para desenvolvimento local do frontend, use **pnpm** (não npm — o projeto usa workspaces pnpm e `npm install` falha).
 
 ```bash
 # 1. Clone o repositório
@@ -103,8 +103,8 @@ As variáveis abaixo são necessárias para ativar o bot:
 # Backend
 cd backend && uv run pytest -v
 
-# Frontend
-cd frontend && pnpm vitest run
+# Frontend (requer pnpm)
+cd frontend && pnpm test
 ```
 
 ---
