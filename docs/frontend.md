@@ -23,6 +23,7 @@ Interface web do Cofrinho Pessoal, construída com React 19 e TypeScript.
 | Vitest            | Test runner                             |
 | Testing Library   | Testes de componentes React             |
 | MSW               | Mock de API nos testes                  |
+| jest-axe          | Testes de acessibilidade (axe-core)     |
 
 ---
 
@@ -107,21 +108,36 @@ Disponível em <http://localhost:5173>.
 
 ```bash
 cd frontend
-pnpm vitest run       # execução única
-pnpm vitest           # modo watch
+pnpm test             # execução única
+pnpm test:watch       # modo watch
+pnpm test:coverage    # com relatório de cobertura
 ```
 
-Os testes cobrem:
+221 testes organizados em 25 arquivos. Cobertura por área:
 
-- `ContextoAutenticacao` — estado inicial, login, logout, token expirado, is_staff
-- `RotaPrivada` — redirecionamento sem autenticação, token inválido
-- `BarraTopo` — exibição do usuário, dropdown, botão hambúrguer, link de admin
-- `MenuLateral` — links de navegação, logout, drawer mobile (aberto/fechado)
-- `FormularioGasto` — campos, submit, limpeza pós-submit, loading, mensagens
-- `FormularioEntrada` — campos, submit, limpeza pós-submit, loading, mensagens
-- `FormularioCategoriaFonte` — aba categoria vs fonte, submit, loading, mensagens
-- `PaginaLogin` — renderização, redirecionamento, erros, estado "Entrando..."
-- `PaginaPainel` — loading, cards, cores do saldo, gráficos, erro de API
-- `PaginaCadastro` — abas, formulários, sucesso, erros, regressão paginação
-- `PaginaHistorico` — lista, troca de aba, paginação, vazio, erro
-- Testes de segurança — token expirado, token malformado, XSS, logout, 401
+| Área | O que é testado |
+| --- | --- |
+| `ContextoAutenticacao` | Estado inicial, login, logout, token expirado, is_staff |
+| `RotaPrivada` | Redirecionamento sem autenticação, token inválido |
+| `BarraTopo` | Exibição do usuário, dropdown, botão hambúrguer, link de admin |
+| `MenuLateral` | Links de navegação, logout, drawer mobile (aberto/fechado) |
+| `Layout` | Outlet, toggle de sidebar, overlay mobile |
+| `FormularioGasto` | Campos, submit, loading, mensagens |
+| `FormularioEntrada` | Campos, submit, loading, mensagens |
+| `FormularioCategoriaFonte` | Aba categoria vs fonte, submit, loading |
+| `PaginaLogin` | Renderização, redirecionamento, erros, loading |
+| `PaginaPainel` | Cards, cores do saldo, gráficos, erro de API |
+| `PaginaCadastro` | Abas, formulários, sucesso, erros |
+| `PaginaHistorico` | Lista, troca de aba, paginação, vazio, erro |
+| `GraficoBarrasHorizontais` | Título, estado vazio, renderização com dados |
+| `GraficoEntradasVsGastos` | Título, valores zerados, saldo negativo |
+| `GraficoLinhaTempo` | Título, dados vazios, 3 meses de dados |
+| `useHistorico` | Loading, erro, dados, mudança de página |
+| `api/autenticacao` | `login()` — corpo, tokens, erros 401/500 |
+| `api/financas` | Todos os métodos CRUD + paginação automática |
+| `api/axios` | Interceptor de token, refresh automático em 401 |
+| `utils/graficos` | `labelMes`, `ultimos3Meses`, `buildLineData`, `buildCategoriaData`, `buildFonteData` |
+| `utils/format` | Formatação BRL e datas |
+| `App` | Roteamento — rotas públicas, protegidas sem/com autenticação |
+| Segurança | Token expirado, token malformado, XSS, logout, interceptor 401 |
+| Acessibilidade | PaginaLogin, BarraTopo, MenuLateral, FormularioCategoriaFonte (axe-core) |
