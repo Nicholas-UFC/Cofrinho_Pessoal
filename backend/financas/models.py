@@ -1,3 +1,5 @@
+import hashlib
+import json
 from typing import ClassVar
 
 from django.contrib.auth.models import User
@@ -234,6 +236,11 @@ class LogAuditoria(models.Model):
     objeto_id = models.PositiveIntegerField()
     detalhes = models.JSONField(default=dict)
     criado_em = models.DateTimeField(auto_now_add=True)
+    # Hash SHA-256 dos campos imutáveis — OWASP prática 130.
+    # Permite detectar adulteração direta no banco de dados.
+    hash_integridade = models.CharField(
+        max_length=64, blank=True, default=""
+    )
 
     class Meta:
         ordering: ClassVar = ["-criado_em"]
@@ -242,6 +249,25 @@ class LogAuditoria(models.Model):
 
     def __str__(self) -> str:
         return f"{self.acao} {self.modelo} #{self.objeto_id}"
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        if not self.hash_integridade:
+            self.hash_integridade = self._calcular_hash()
+        super().save(*args, **kwargs)
+
+    def _calcular_hash(self) -> str:
+        conteudo = json.dumps(
+            {
+                "usuario_id": self.usuario_id,
+                "acao": self.acao,
+                "modelo": self.modelo,
+                "objeto_id": self.objeto_id,
+                "detalhes": self.detalhes,
+            },
+            sort_keys=True,
+            ensure_ascii=True,
+        )
+        return hashlib.sha256(conteudo.encode()).hexdigest()
 
 
 # Tabela de acesso — registra toda requisição feita ao sistema.
