@@ -109,7 +109,7 @@ uv run pytest -v
 
 # Frontend
 cd frontend
-pnpm vitest run
+pnpm test
 ```
 
 ## Configurar pre-commit

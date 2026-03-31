@@ -24,7 +24,7 @@ celular, sem abrir o navegador.
 - Isolamento multi-usuário (cada usuário vê apenas seus próprios dados)
 - Análise estática automática via pre-commit: complexidade ciclomática (xenon), tamanho de arquivos (500 linhas) e ESLint complexity
 - **Bot para WhatsApp** — registre gastos, entradas e consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
-- Testes automatizados: backend (251 testes, 97% cobertura) e frontend (113 testes)
+- Testes automatizados: backend (251 testes, 97% cobertura) e frontend (221 testes, vitest + jest-axe)
 
 ## Stack
 
