@@ -1,3 +1,4 @@
+import logging
 import re
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
@@ -8,6 +9,8 @@ from django.contrib.auth.models import User
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
 from whatsapp.models import SessaoConversa
+
+logger = logging.getLogger(__name__)
 
 # Prefixo invisível adicionado a todas as respostas do bot.
 # Permite que o webhook ignore o echo do message.any sem depender de IDs.
@@ -490,5 +493,19 @@ def enviar_mensagem(chat_id: str, texto: str) -> None:
         "text": texto,
         "session": getattr(settings, "WAHA_SESSION", "default"),
     }
-    resposta = httpx.post(url, json=payload, headers=headers, timeout=10)
-    _registrar_id_enviado(resposta)
+    try:
+        resposta = httpx.post(
+            url, json=payload, headers=headers, timeout=10
+        )
+        _registrar_id_enviado(resposta)
+    except httpx.ConnectError as exc:
+        # Falha de conexão/TLS com o WAHA — OWASP práticas 128-129.
+        logger.error(
+            "Falha de conexão ao WAHA (%s): %s",
+            url,
+            exc,
+        )
+        raise
+    except httpx.TimeoutException as exc:
+        logger.warning("Timeout ao enviar mensagem para %s: %s", chat_id, exc)
+        raise

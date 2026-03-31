@@ -16,6 +16,15 @@ _IGNORADO = JsonResponse({"status": "ignorado"})
 _MAX_BODY_BYTES = 2 * 1024 * 1024
 
 
+def _validar_api_key(request: HttpRequest) -> bool:
+    """Verifica se o header X-Api-Key bate com WAHA_API_KEY — OWASP 34."""
+    chave_esperada = getattr(settings, "WAHA_API_KEY", "")
+    if not chave_esperada:
+        return True
+    chave_recebida = request.headers.get("X-Api-Key", "")
+    return chave_recebida == chave_esperada
+
+
 def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:
     """Retorna o corpo da mensagem se deve ser processada, ou None."""
     if dados.get("event") not in ("message", "message.any"):
@@ -34,6 +43,9 @@ def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:
 @csrf_exempt
 @require_POST
 def webhook(request: HttpRequest) -> JsonResponse:
+    if not _validar_api_key(request):
+        return JsonResponse({"erro": "não autorizado"}, status=403)
+
     tamanho = int(request.META.get("CONTENT_LENGTH") or 0)
     if tamanho > _MAX_BODY_BYTES:
         return _IGNORADO
