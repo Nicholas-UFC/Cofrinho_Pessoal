@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "prepare": "cd .. && husky frontend/.husky"
+    "prepare": "cd .. && husky frontend/.husky",
+    "postinstall": "node scripts/verificar-pacotes-seguros.js"
   },
   "dependencies": {
     "axios": "^1.13.6",
@@ -62,5 +63,10 @@
     "workerDirectory": [
       "public"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": ">=1.13.6 <1.14.1"
+    }
   }
 }
