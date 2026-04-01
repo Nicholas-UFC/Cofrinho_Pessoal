@@ -23,13 +23,11 @@ def user(db: None) -> User:
 
 @pytest.fixture
 def auth_client(user: User) -> APIClient:
+    from rest_framework_simplejwt.tokens import RefreshToken
+
     c = APIClient()
-    response = c.post(
-        "/api/token/",
-        {"username": "testuser", "password": "testpass123"},
-    )
-    token = response.data["access"]
-    c.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    token = RefreshToken.for_user(user)
+    c.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
     return c
 
 

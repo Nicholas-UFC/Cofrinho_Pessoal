@@ -70,9 +70,10 @@ def test_logout_sem_refresh_retorna_400(
 
 
 @pytest.mark.django_db
-def test_logout_com_refresh_invalido_retorna_400(
+def test_logout_com_refresh_invalido_ainda_limpa_cookies(
     client: APIClient, usuario: User
 ) -> None:
+    """Token inválido não deve impedir o logout — cookies devem ser limpos."""
     access = str(AccessToken.for_user(usuario))
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
     resp = client.post(
@@ -80,7 +81,9 @@ def test_logout_com_refresh_invalido_retorna_400(
         {"refresh": "token_invalido_xyz"},
         content_type="application/json",
     )
-    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.cookies["access"].value == ""
+    assert resp.cookies["refresh"].value == ""
 
 
 @pytest.mark.django_db

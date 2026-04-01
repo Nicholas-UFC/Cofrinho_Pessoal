@@ -8,10 +8,9 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 # ---------------------------------------------------------------------------
-# JWT — autenticação avançada
+# JWT — autenticação via cookies httpOnly (OWASP prática 76)
 #
-# Cobre os casos que test_view_autenticacao.py não cobre: token inválido,
-# token expirado, token refresh e fluxo completo de login.
+# Cobre token inválido, expirado, refresh via cookie e fluxo de login.
 # ---------------------------------------------------------------------------
 
 
@@ -72,58 +71,60 @@ class TestTokenExpirado:
 
 @pytest.mark.django_db
 class TestTokenRefresh:
-    def test_refresh_valido_gera_novo_access_token(
+    def test_refresh_via_cookie_gera_novo_access(
         self, client: APIClient, user: User
     ) -> None:
+        """Refresh via cookie deve retornar cookie com novo access token."""
         refresh = RefreshToken.for_user(user)
-        response = client.post(
-            "/api/token/refresh/", {"refresh": str(refresh)}
-        )
+        client.cookies["refresh"] = str(refresh)
+        response = client.post("/api/token/refresh/")
         assert response.status_code == status.HTTP_200_OK
-        assert "access" in response.data
+        assert "access" in response.cookies
 
-    def test_novo_access_token_autentica_com_sucesso(
+    def test_novo_cookie_access_autentica_com_sucesso(
         self, client: APIClient, user: User
     ) -> None:
+        """Access token do cookie deve autenticar rotas protegidas."""
         refresh = RefreshToken.for_user(user)
-        response = client.post(
-            "/api/token/refresh/", {"refresh": str(refresh)}
-        )
-        novo_token = response.data["access"]
-        client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {novo_token}"
-        )
+        client.cookies["refresh"] = str(refresh)
+        client.post("/api/token/refresh/")
+        # Cookie 'access' foi definido pela resposta anterior.
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_200_OK
 
     def test_refresh_invalido_retorna_401(
         self, client: APIClient
     ) -> None:
-        response = client.post(
-            "/api/token/refresh/",
-            {"refresh": "refresh_invalido_xyz"},
-        )
+        client.cookies["refresh"] = "refresh_invalido_xyz"
+        response = client.post("/api/token/refresh/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_refresh_ausente_retorna_400(
+    def test_refresh_ausente_retorna_401(
         self, client: APIClient
     ) -> None:
-        response = client.post("/api/token/refresh/", {})
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        """Sem cookie de refresh, deve retornar 401."""
+        response = client.post("/api/token/refresh/")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 @pytest.mark.django_db
 class TestFluxoLogin:
-    def test_login_valido_retorna_access_e_refresh(
+    def test_login_valido_define_cookies_e_retorna_info_usuario(
         self, client: APIClient, user: User
     ) -> None:
+        """Login deve definir cookies httpOnly e retornar username/is_staff."""
         response = client.post(
             "/api/token/",
             {"username": "testuser", "password": "testpass123"},
         )
         assert response.status_code == status.HTTP_200_OK
-        assert "access" in response.data
-        assert "refresh" in response.data
+        assert "access" in response.cookies
+        assert "refresh" in response.cookies
+        assert response.cookies["access"]["httponly"]
+        body = response.json()
+        assert body["username"] == "testuser"
+        assert "access" not in body
+        assert "refresh" not in body
 
     def test_login_com_credenciais_erradas_retorna_401(
         self, client: APIClient, user: User
@@ -134,14 +135,14 @@ class TestFluxoLogin:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_access_token_do_login_autentica_api(
+    def test_cookie_do_login_autentica_api(
         self, client: APIClient, user: User
     ) -> None:
-        response = client.post(
+        """Cookie definido no login deve autenticar rotas protegidas."""
+        client.post(
             "/api/token/",
             {"username": "testuser", "password": "testpass123"},
         )
-        token = response.data["access"]
-        client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        # Cookie 'access' foi definido pelo login.
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_200_OK
