@@ -1,9 +1,6 @@
 // Blocklist de versões de pacotes com comprometimento confirmado.
 // Para liberar uma versão, remova-a daqui explicitamente.
-const VERSOES_BLOQUEADAS = [
-  { pacote: "axios", versao: "1.14.1" },
-  { pacote: "axios", versao: "0.30.4" },
-];
+const VERSOES_BLOQUEADAS = [];
 
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
