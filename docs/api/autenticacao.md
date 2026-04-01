@@ -1,9 +1,13 @@
 # Autenticação
 
-A API usa **JWT (JSON Web Token)** via SimpleJWT. Todo endpoint (exceto
-`/api/token/`) exige um token válido no cabeçalho da requisição.
+A API usa **JWT (JSON Web Token)** via SimpleJWT. Os tokens são armazenados em
+**cookies httpOnly** — nunca expostos ao JavaScript — o que elimina a superfície
+de ataque de XSS.
 
-## Obter token
+Todo endpoint (exceto `/api/token/` e `/api/token/refresh/`) exige um cookie de
+acesso válido.
+
+## Login
 
 ```http
 POST /api/token/
@@ -19,42 +23,52 @@ Content-Type: application/json
 
 ```json
 {
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGci...",
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
+  "username": "seu_usuario",
+  "is_staff": false
 }
 ```
 
-- **access** — token de acesso, válido por **1 hora**
-- **refresh** — token de renovação, válido por **7 dias**
+Os tokens **não aparecem no corpo da resposta**. O servidor seta dois cookies
+httpOnly automaticamente:
 
-## Usar o token
+| Cookie          | Conteúdo        | Validade |
+|-----------------|-----------------|----------|
+| `access`        | Token de acesso | 1 hora   |
+| `refresh`       | Token de refresh| 7 dias   |
 
-Inclua o token de acesso no cabeçalho `Authorization`:
+## Requisições autenticadas
 
-```http
-GET /api/financas/gastos/
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGci...
+Nenhum cabeçalho extra é necessário. O browser envia os cookies automaticamente.
+Em chamadas via código (ex: axios), use `withCredentials: true`:
+
+```ts
+axios.get("/api/financas/gastos/", { withCredentials: true });
 ```
 
 ## Renovar token
 
-Quando o `access` expirar, use o `refresh` para obter um novo:
+Quando o cookie `access` expirar, envie uma requisição para renovação — o cookie
+`refresh` é lido automaticamente pelo servidor:
 
 ```http
 POST /api/token/refresh/
-Content-Type: application/json
-
-{
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGci..."
-}
 ```
 
-A cada renovação, um novo `refresh` é gerado (`ROTATE_REFRESH_TOKENS=True`).
+**Resposta:** novo cookie `access` é setado. Um novo `refresh` também é gerado
+(`ROTATE_REFRESH_TOKENS=True`).
+
+## Logout
+
+```http
+POST /api/logout/
+```
+
+O servidor blacklista o `refresh` token e limpa ambos os cookies. Após o logout,
+requisições com os cookies antigos retornam `401`.
 
 ## Erros comuns
 
-| Código | Significado |
-|--------|-------------|
-| `401`  | Token ausente ou inválido |
-| `401`  | Token expirado |
-| `403`  | Sem permissão para o recurso |
+| Código | Significado                          |
+|--------|--------------------------------------|
+| `401`  | Cookie ausente, inválido ou expirado |
+| `403`  | Sem permissão para o recurso         |
