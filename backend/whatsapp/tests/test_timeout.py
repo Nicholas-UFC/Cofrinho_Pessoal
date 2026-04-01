@@ -38,7 +38,7 @@ _AGORA = datetime(2026, 3, 27, 12, 0, 0, tzinfo=UTC)
 
 def _enviar(corpo: str, delta_minutos: float = 0.0) -> str:
     momento = _AGORA + timedelta(minutes=delta_minutos)
-    with patch("whatsapp.services._agora", return_value=momento):
+    with patch("whatsapp.services.processador._agora", return_value=momento):
         return processar_mensagem(CHAT_ID, corpo)
 
 
