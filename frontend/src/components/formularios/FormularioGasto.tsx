@@ -1,7 +1,20 @@
 import { useState, type JSX } from "react";
+import { z } from "zod";
 import { type Categoria } from "../../api/financas";
 import { inputStyle, labelStyle, INPUT_CLASS } from "./estilos";
 import { SuccessMessage, ErrorMessage } from "./Mensagens";
+
+const schemaGasto = z.object({
+    descricao: z
+        .string()
+        .min(1, "Descrição obrigatória")
+        .max(200, "Máximo 200 caracteres"),
+    valor: z
+        .string()
+        .refine((v) => parseFloat(v) > 0, "Valor deve ser maior que zero"),
+    data: z.string().min(1, "Data obrigatória"),
+    categoria: z.string().min(1, "Selecione uma categoria"),
+});
 
 interface FormularioGastoProps {
     categorias: Categoria[];
@@ -28,8 +41,21 @@ export function FormularioGasto({
     const [data, setData] = useState(new Date().toISOString().slice(0, 10));
     const [categoria, setCategoria] = useState("");
 
+    const [erroLocal, setErroLocal] = useState<string | null>(null);
+
     function handleSubmit(e: React.SyntheticEvent): void {
         e.preventDefault();
+        const resultado = schemaGasto.safeParse({
+            descricao,
+            valor,
+            data,
+            categoria,
+        });
+        if (!resultado.success) {
+            setErroLocal(resultado.error.issues[0].message);
+            return;
+        }
+        setErroLocal(null);
         onSubmit(descricao, valor, data, categoria);
         setDescricao("");
         setValor("");
@@ -129,7 +155,9 @@ export function FormularioGasto({
                 </select>
             </div>
             {success && <SuccessMessage message={success} />}
-            {error && <ErrorMessage message={error} />}
+            {(erroLocal ?? error) && (
+                <ErrorMessage message={erroLocal ?? error ?? ""} />
+            )}
             <button
                 type="submit"
                 disabled={loading}

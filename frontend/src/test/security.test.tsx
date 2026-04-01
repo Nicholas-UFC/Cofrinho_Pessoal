@@ -1,46 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { renderWithProviders } from "./utils";
-import { makeFakeToken, makeExpiredToken } from "./handlers";
 import { server } from "./server";
 import type { JSX } from "react";
 import { useAutenticacao } from "../context/useAutenticacao";
 
 /*
- * Testes de segurança do frontend — autenticação, tokens e controle de acesso
- * ---------------------------------------------------------------------------
+ * Testes de segurança do frontend — autenticação e controle de acesso
+ * -------------------------------------------------------------------
  *
- * Este arquivo reúne todos os testes de segurança da aplicação React. O
- * objetivo é garantir que o frontend não expõe dados nem funcionalidades
- * protegidas por falhas de verificação de token ou de controle de acesso.
- *
- * Os testes são organizados em quatro grupos:
- *
- * 1. TOKENS: verifica que tokens inválidos (expirados, malformados) não
- *    autenticam o usuário — o AutenticacaoContext deve detectar o problema
- *    e limpar o localStorage antes de renderizar qualquer dado protegido.
- *    Também cobre que o logout remove os tokens corretamente.
- *
- * 2. INTERCEPTOR 401: o axios tem um interceptor que tenta fazer refresh
- *    automático do token ao receber 401. Se o refresh também falhar, os
- *    tokens devem ser removidos do localStorage para forçar novo login.
- *    Esse teste usa MSW para simular os endpoints falhando.
- *
- * 3. XSS: dados retornados pela API que contêm HTML ou scripts não devem
- *    ser interpretados como markup pelo React — devem aparecer como texto
- *    puro na tela. React faz isso por padrão via JSX, mas o teste serve
- *    como regressão para garantir que nenhum `dangerouslySetInnerHTML`
- *    foi introduzido acidentalmente nos componentes que exibem dados da API.
- *
- * 4. ACESSO ADMIN: o link do Painel Admin na TopBar só deve ser exibido para
- *    usuários com `is_staff = true` no payload do JWT. Usuários normais não
- *    devem nem ver o link — não apenas serem bloqueados ao clicar.
+ * O token JWT vive no cookie httpOnly (OWASP prática 76) e nunca é
+ * armazenado no localStorage. O localStorage guarda apenas 'usuario_info'
+ * com { username, isAdmin } para persistir o estado da UI entre reloads.
  */
 
-// ──────────────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────────────
 function AuthDisplay(): JSX.Element {
     const { isAuthenticated, isAdmin } = useAutenticacao();
     return (
@@ -53,45 +28,41 @@ function AuthDisplay(): JSX.Element {
     );
 }
 
-// ──────────────────────────────────────────────────────
-// Testes de segurança — tokens
-// ──────────────────────────────────────────────────────
-describe("Segurança — tokens", () => {
-    it("token expirado no localStorage não autentica o usuário", () => {
-        localStorage.setItem("access", makeExpiredToken());
-        localStorage.setItem("refresh", "fake-refresh");
-        renderWithProviders(<AuthDisplay />);
-        expect(screen.getByTestId("auth")).toHaveTextContent("anonimo");
-        expect(localStorage.getItem("access")).toBeNull();
-        expect(localStorage.getItem("refresh")).toBeNull();
-    });
+function infoUsuario(isAdmin = false): void {
+    localStorage.setItem(
+        "usuario_info",
+        JSON.stringify({ username: "testuser", isAdmin }),
+    );
+}
 
-    it("token malformado/corrompido não autentica o usuário", () => {
-        localStorage.setItem("access", "isto.nao.e.um.jwt");
+// ──────────────────────────────────────────────────────
+// Testes de segurança — estado de autenticação
+// ──────────────────────────────────────────────────────
+describe("Segurança — estado de autenticação", () => {
+    it("sem usuario_info no localStorage → usuário anônimo", () => {
         renderWithProviders(<AuthDisplay />);
         expect(screen.getByTestId("auth")).toHaveTextContent("anonimo");
     });
 
-    it("token com is_staff false não é tratado como admin", () => {
-        localStorage.setItem("access", makeFakeToken(false));
+    it("usuario_info com isAdmin=false não é tratado como admin", () => {
+        infoUsuario(false);
         renderWithProviders(<AuthDisplay />);
         expect(screen.getByTestId("admin")).toHaveTextContent("normal");
     });
 
-    it("tokens são removidos do localStorage após logout", () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
+    it("usuario_info removido após logout", async () => {
+        infoUsuario();
 
         function LogoutButton(): JSX.Element {
             const { logout } = useAutenticacao();
-            return <button onClick={logout}>Sair</button>;
+            return <button onClick={() => void logout()}>Sair</button>;
         }
 
-        const { getByText } = renderWithProviders(<LogoutButton />);
-        getByText("Sair").click();
-
-        expect(localStorage.getItem("access")).toBeNull();
-        expect(localStorage.getItem("refresh")).toBeNull();
+        renderWithProviders(<LogoutButton />);
+        await act(async () => {
+            await userEvent.click(screen.getByText("Sair"));
+        });
+        expect(localStorage.getItem("usuario_info")).toBeNull();
     });
 });
 
@@ -99,9 +70,8 @@ describe("Segurança — tokens", () => {
 // Testes de segurança — interceptor 401
 // ──────────────────────────────────────────────────────
 describe("Segurança — interceptor 401", () => {
-    it("remove tokens quando refresh falha após 401", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "invalid-refresh");
+    it("remove usuario_info quando refresh falha após 401", async () => {
+        infoUsuario();
 
         server.use(
             http.get("http://localhost:8000/api/financas/resumo/", () =>
@@ -115,17 +85,15 @@ describe("Segurança — interceptor 401", () => {
             ),
         );
 
-        // Importa a função de API para disparar o interceptor diretamente
         const { getResumo } = await import("../api/financas");
         try {
             await getResumo();
         } catch {
-            // Esperado falhar — o importante é o efeito colateral nos tokens
+            // Esperado falhar — o importante é o efeito colateral
         }
 
         await waitFor(() => {
-            expect(localStorage.getItem("access")).toBeNull();
-            expect(localStorage.getItem("refresh")).toBeNull();
+            expect(localStorage.getItem("usuario_info")).toBeNull();
         });
     });
 });
@@ -161,13 +129,11 @@ describe("Segurança — XSS", () => {
         renderWithProviders(<PaginaHistorico />);
 
         await waitFor(() => {
-            // O texto bruto deve aparecer — não executado como HTML
             expect(
                 screen.getByText("<script>alert('xss')</script>"),
             ).toBeInTheDocument();
         });
 
-        // Nenhum script extra deve ter sido injetado pelo conteúdo da API
         const scripts = document.querySelectorAll("script");
         scripts.forEach((s) => {
             expect(s.textContent).not.toContain("alert('xss')");
@@ -180,7 +146,7 @@ describe("Segurança — XSS", () => {
 // ──────────────────────────────────────────────────────
 describe("Segurança — acesso admin", () => {
     it("link do Painel Admin não aparece para usuários normais", () => {
-        localStorage.setItem("access", makeFakeToken(false));
+        infoUsuario(false);
 
         function TopBarMock(): JSX.Element {
             const { isAdmin } = useAutenticacao();
@@ -197,7 +163,7 @@ describe("Segurança — acesso admin", () => {
     });
 
     it("link do Painel Admin aparece apenas para admins", () => {
-        localStorage.setItem("access", makeFakeToken(true));
+        infoUsuario(true);
 
         function TopBarMock(): JSX.Element {
             const { isAdmin } = useAutenticacao();

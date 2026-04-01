@@ -5,7 +5,7 @@ export interface AuthContextValue {
     username: string | null;
     isAdmin: boolean;
     login: (username: string, password: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
 }
 
 export const ContextoAutenticacao = createContext<AuthContextValue | null>(

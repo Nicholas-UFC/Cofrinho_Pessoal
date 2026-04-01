@@ -167,6 +167,8 @@ JAZZMIN_SETTINGS = {
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        # Cookie-based auth tem prioridade — OWASP prática 76.
+        "financas.autenticacao.CookieJWTAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -221,6 +223,8 @@ SPECTACULAR_SETTINGS = {
 # CORS — OWASP prática 92.
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_ALLOW_ALL_ORIGINS = False
+# Necessário para withCredentials (cookies httpOnly) — OWASP prática 76.
+CORS_ALLOW_CREDENTIALS = True
 
 # django-axes
 AXES_FAILURE_LIMIT = 5

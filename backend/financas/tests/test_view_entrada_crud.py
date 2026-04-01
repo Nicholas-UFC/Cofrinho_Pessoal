@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 from decimal import Decimal
 
@@ -47,12 +48,8 @@ def user(db: None) -> User:
 @pytest.fixture
 def auth_client(client: APIClient, user: User) -> APIClient:
     # Cliente autenticado via JWT para os testes normais.
-    response = client.post(
-        "/api/token/",
-        {"username": "testuser", "password": "testpass123"},
-    )
-    token = response.data["access"]
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    token = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
     return client
 
 

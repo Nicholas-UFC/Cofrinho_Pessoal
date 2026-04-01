@@ -79,7 +79,7 @@ export default function MenuLateral({
             <button
                 onClick={() => {
                     onClose();
-                    logout();
+                    void logout();
                 }}
                 style={{ color: "#94a3b8" }}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium hover:text-white transition-colors mt-4"

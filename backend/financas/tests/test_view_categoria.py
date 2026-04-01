@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.tokens import RefreshToken
 import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
@@ -52,12 +53,8 @@ def user(db: None) -> User:
 @pytest.fixture
 def auth_client(client: APIClient, user: User) -> APIClient:
     # Cliente autenticado via JWT para os testes normais.
-    response = client.post(
-        "/api/token/",
-        {"username": "testuser", "password": "testpass123"},
-    )
-    token = response.data["access"]
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    token = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
     return client
 
 
@@ -73,12 +70,8 @@ def outro_user(db: None) -> User:
 def outro_client(outro_user: User) -> APIClient:
     # Cliente autenticado como o segundo usuário.
     c = APIClient()
-    response = c.post(
-        "/api/token/",
-        {"username": "outrouser", "password": "outropass123"},
-    )
-    token = response.data["access"]
-    c.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+    token = RefreshToken.for_user(outro_user)
+    c.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
     return c
 
 
@@ -211,5 +204,3 @@ class TestCategoriaViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         cat = Categoria.objects.get(nome="Nova")
         assert cat.usuario == user
-
-

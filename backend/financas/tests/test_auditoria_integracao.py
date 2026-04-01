@@ -60,13 +60,11 @@ def fonte(user: User) -> Fonte:
     return Fonte.objects.create(nome="Salario", usuario=user)
 
 
-def _autenticar(api_client: APIClient) -> None:
-    response = api_client.post(
-        "/api/token/",
-        {"username": "testuser", "password": "testpass123"},
-    )
-    token = response.data["access"]
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+def _autenticar(api_client: APIClient, user: User) -> None:
+    from rest_framework_simplejwt.tokens import RefreshToken
+
+    token = RefreshToken.for_user(user)
+    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
 
 
 # ---------------------------------------------------------------------------
@@ -78,7 +76,7 @@ def _autenticar(api_client: APIClient) -> None:
 def test_criar_gasto_gera_log_acesso_e_auditoria(
     api_client: APIClient, user: User, categoria: Categoria
 ) -> None:
-    _autenticar(api_client)
+    _autenticar(api_client, user)
     api_client.post(
         reverse("gasto-list"),
         {
@@ -98,7 +96,7 @@ def test_criar_gasto_gera_log_acesso_e_auditoria(
 def test_criar_entrada_gera_log_acesso_e_auditoria(
     api_client: APIClient, user: User, fonte: Fonte
 ) -> None:
-    _autenticar(api_client)
+    _autenticar(api_client, user)
     api_client.post(
         reverse("entrada-list"),
         {

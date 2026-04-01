@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { Route, Routes } from "react-router-dom";
 import { http, HttpResponse } from "msw";
 import { renderWithProviders } from "../../test/utils";
-import { makeFakeToken } from "../../test/handlers";
+
 import { server } from "../../test/server";
 import PaginaLogin from "../PaginaLogin";
 import type { JSX } from "react";
@@ -97,7 +97,10 @@ describe("PaginaLogin", () => {
     });
 
     it("redireciona para /dashboard se já autenticado", async () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderWithProviders(
             <Routes>
                 <Route path="/login" element={<PaginaLogin />} />
@@ -118,8 +121,8 @@ describe("PaginaLogin", () => {
                     setTimeout(resolve, 100);
                 });
                 return HttpResponse.json({
-                    access: makeFakeToken(),
-                    refresh: "fake-refresh",
+                    username: "testuser",
+                    is_staff: false,
                 });
             }),
         );

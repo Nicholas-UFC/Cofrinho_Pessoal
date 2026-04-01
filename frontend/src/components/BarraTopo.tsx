@@ -99,7 +99,7 @@ export default function BarraTopo({
                         <button
                             onClick={() => {
                                 setOpen(false);
-                                logout();
+                                void logout();
                             }}
                             style={{ color: "#f1f5f9" }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:opacity-70 transition-opacity"

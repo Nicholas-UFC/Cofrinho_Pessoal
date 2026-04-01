@@ -22,15 +22,19 @@ export function makeExpiredToken(): string {
 }
 
 export const handlers = [
+    // Login retorna info do usuário; tokens são definidos via cookie httpOnly.
     http.post(`${BASE}/api/token/`, () =>
-        HttpResponse.json({
-            access: makeFakeToken(),
-            refresh: "fake-refresh-token",
-        }),
+        HttpResponse.json({ username: "testuser", is_staff: false }),
     ),
 
+    // Refresh define novo cookie; corpo apenas indica sucesso.
     http.post(`${BASE}/api/token/refresh/`, () =>
-        HttpResponse.json({ access: makeFakeToken() }),
+        HttpResponse.json({ status: "ok" }),
+    ),
+
+    // Logout blacklista o refresh token e limpa cookies.
+    http.post(`${BASE}/api/token/logout/`, () =>
+        HttpResponse.json({ status: "logout realizado com sucesso." }),
     ),
 
     http.get(`${BASE}/api/financas/resumo/`, () =>
