@@ -13,7 +13,9 @@ MENU_TEXTO = (
     "O que você quer fazer?\n\n"
     "1️⃣ Registrar gasto\n"
     "2️⃣ Registrar entrada\n"
-    "3️⃣ Ver resumo do mês\n\n"
+    "3️⃣ Ver resumo do mês\n"
+    "4️⃣ Gerenciar gastos\n"
+    "5️⃣ Gerenciar entradas\n\n"
     "Digite o número da opção."
 )
 
@@ -23,7 +25,10 @@ COMANDOS_CONHECIDOS = (
     "• *1* — Registrar gasto (dentro do menu)\n"
     "• *2* — Registrar entrada (dentro do menu)\n"
     "• *3* — Ver resumo do mês (dentro do menu)\n"
-    "• *0* — Cancelar operação em andamento\n"
+    "• *4* — Gerenciar gastos (dentro do menu)\n"
+    "• *5* — Gerenciar entradas (dentro do menu)\n"
+    "• *0* — Sair / cancelar operação\n"
+    "• *v* — Voltar um passo\n"
     "• *s* / *n* — Confirmar ou cancelar"
 )
 

@@ -15,10 +15,8 @@ from whatsapp.services.handlers_gasto import (
 from whatsapp.services.utils import (
     COMANDOS_CONHECIDOS,
     MENU_TEXTO,
-    _cancelar,
     _obter_resumo,
     _obter_usuario,
-    _resetar,
 )
 
 logger = logging.getLogger(__name__)
@@ -121,6 +119,16 @@ def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
         if not usuario:
             return "❌ Usuário não configurado."
         return _obter_resumo(usuario)
+    if corpo == "4":
+        from whatsapp.services.handlers_crud import (  # noqa: PLC0415
+            abrir_lista_gastos,
+        )
+        return abrir_lista_gastos(sessao)
+    if corpo == "5":
+        from whatsapp.services.handlers_crud import (  # noqa: PLC0415
+            abrir_lista_entradas,
+        )
+        return abrir_lista_entradas(sessao)
     return (
         f"❓ Não conheço o comando *{corpo}*.\n\n"
         + COMANDOS_CONHECIDOS
@@ -148,6 +156,27 @@ def processar_mensagem(chat_id: str, corpo: str) -> str:
         "aguardando_fonte_entrada": processar_fonte_entrada,
         "confirmando_entrada": processar_confirmacao_entrada,
     }
-    handler = despachantes.get(sessao.estado)
-    resposta = MENU_TEXTO if handler is None else handler(sessao, corpo)
+
+    estados_crud = {
+        "listando_gastos",
+        "listando_entradas",
+        "confirmando_exclusao_gasto",
+        "confirmando_exclusao_entrada",
+        "editando_gasto_campo",
+        "editando_gasto_valor",
+        "editando_gasto_categoria",
+        "editando_entrada_campo",
+        "editando_entrada_valor",
+        "editando_entrada_fonte",
+    }
+
+    if sessao.estado in estados_crud:
+        from whatsapp.services.handlers_crud import (  # noqa: PLC0415
+            processar_estado_crud,
+        )
+        resposta = processar_estado_crud(sessao, corpo)
+    else:
+        handler = despachantes.get(sessao.estado)
+        resposta = MENU_TEXTO if handler is None else handler(sessao, corpo)
+
     return PREFIXO_BOT + resposta
