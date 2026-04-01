@@ -77,7 +77,7 @@ Describe "backup_db.ps1 (integração)" {
         $resultado = powershell -ExecutionPolicy Bypass -Command "
             & '$($script:caminho_script)' -EnvPath 'C:\nao\existe\.env'
         " 2>&1 | Out-String
-        $resultado | Should -Match "encontrado"
+        $resultado | Should -Match "Arquivo \.env"
     }
 
     It "encerra com erro se faltar variável no .env" {
@@ -87,7 +87,7 @@ Describe "backup_db.ps1 (integração)" {
         $resultado = powershell -ExecutionPolicy Bypass -Command "
             & '$($script:caminho_script)' -EnvPath '$envSemDestino'
         " 2>&1 | Out-String
-        $resultado | Should -Match "encontrados"
+        $resultado | Should -Match "encontrados no"
     }
 
     It "encerra com erro se o container não estiver rodando" {
