@@ -1,6 +1,12 @@
 import { useState, type JSX } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import { z } from "zod";
 import { useAutenticacao } from "../context/useAutenticacao";
+
+const schemaLogin = z.object({
+    username: z.string().min(1, "Usuário obrigatório"),
+    password: z.string().min(1, "Senha obrigatória"),
+});
 
 export default function PaginaLogin(): JSX.Element {
     const { login, isAuthenticated } = useAutenticacao();
@@ -17,6 +23,11 @@ export default function PaginaLogin(): JSX.Element {
     async function handleSubmit(e: React.SyntheticEvent): Promise<void> {
         e.preventDefault();
         setError(null);
+        const resultado = schemaLogin.safeParse({ username, password });
+        if (!resultado.success) {
+            setError(resultado.error.issues[0].message);
+            return;
+        }
         setLoading(true);
         try {
             await login(username, password);
@@ -106,6 +117,7 @@ export default function PaginaLogin(): JSX.Element {
                             onChange={(e) => {
                                 setPassword(e.target.value);
                             }}
+                            autoComplete="off"
                             required
                             style={{
                                 backgroundColor: "#0f3460",
