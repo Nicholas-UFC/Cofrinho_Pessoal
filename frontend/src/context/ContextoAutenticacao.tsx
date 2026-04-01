@@ -1,12 +1,20 @@
 import { useState, useCallback, type ReactNode, type JSX } from "react";
-import { jwtDecode } from "jwt-decode";
-import { login as apiLogin } from "../api/autenticacao";
+import { login as apiLogin, logout as apiLogout } from "../api/autenticacao";
 import { ContextoAutenticacao } from "./useAutenticacao";
 
-interface JwtPayload {
+interface UsuarioInfo {
     username: string;
-    is_staff: boolean;
-    exp: number;
+    isAdmin: boolean;
+}
+
+// Armazena apenas info do usuário (não o token) para persistir UI entre reloads.
+// O token vive exclusivamente no cookie httpOnly — OWASP prática 76.
+function salvarInfoUsuario(info: UsuarioInfo): void {
+    localStorage.setItem("usuario_info", JSON.stringify(info));
+}
+
+function limparInfoUsuario(): void {
+    localStorage.removeItem("usuario_info");
 }
 
 function getInitialState(): {
@@ -14,22 +22,12 @@ function getInitialState(): {
     username: string | null;
     isAdmin: boolean;
 } {
-    const token = localStorage.getItem("access");
-    if (!token) {
+    const raw = localStorage.getItem("usuario_info");
+    if (!raw)
         return { isAuthenticated: false, username: null, isAdmin: false };
-    }
     try {
-        const decoded = jwtDecode<JwtPayload>(token);
-        if (decoded.exp * 1000 < Date.now()) {
-            localStorage.removeItem("access");
-            localStorage.removeItem("refresh");
-            return { isAuthenticated: false, username: null, isAdmin: false };
-        }
-        return {
-            isAuthenticated: true,
-            username: decoded.username,
-            isAdmin: decoded.is_staff,
-        };
+        const { username, isAdmin } = JSON.parse(raw) as UsuarioInfo;
+        return { isAuthenticated: true, username, isAdmin };
     } catch {
         return { isAuthenticated: false, username: null, isAdmin: false };
     }
@@ -44,25 +42,30 @@ export function ProvedorAutenticacao({
     const [isAuthenticated, setIsAuthenticated] = useState(
         initial.isAuthenticated,
     );
-    const [username, setUsername] = useState<string | null>(initial.username);
+    const [username, setUsername] = useState(initial.username);
     const [isAdmin, setIsAdmin] = useState(initial.isAdmin);
 
     const login = useCallback(
         async (user: string, password: string): Promise<void> => {
-            const tokens = await apiLogin(user, password);
-            localStorage.setItem("access", tokens.access);
-            localStorage.setItem("refresh", tokens.refresh);
-            const decoded = jwtDecode<JwtPayload>(tokens.access);
+            const { username: nome, is_staff: isStaff } = await apiLogin(
+                user,
+                password,
+            );
+            salvarInfoUsuario({ username: nome, isAdmin: isStaff });
             setIsAuthenticated(true);
-            setUsername(decoded.username);
-            setIsAdmin(decoded.is_staff);
+            setUsername(nome);
+            setIsAdmin(isStaff);
         },
         [],
     );
 
-    const logout = useCallback((): void => {
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
+    const logout = useCallback(async (): Promise<void> => {
+        try {
+            await apiLogout();
+        } catch {
+            // Mesmo com erro, limpa o estado local.
+        }
+        limparInfoUsuario();
         setIsAuthenticated(false);
         setUsername(null);
         setIsAdmin(false);

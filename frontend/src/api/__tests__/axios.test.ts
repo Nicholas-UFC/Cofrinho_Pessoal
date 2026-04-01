@@ -1,65 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../../test/server";
-import { makeFakeToken } from "../../test/handlers";
 import { getResumo } from "../financas";
 
 // ---------------------------------------------------------------------------
-// Interceptor de requisição — injeção automática do token JWT
-// ---------------------------------------------------------------------------
-
-describe("Interceptor de requisição", () => {
-    it("injeta o header Authorization quando há token no localStorage", async () => {
-        let headerCapturado: string | null = null;
-        server.use(
-            http.get(
-                "http://localhost:8000/api/financas/resumo/",
-                ({ request }) => {
-                    headerCapturado = request.headers.get("Authorization");
-                    return HttpResponse.json({
-                        total_entradas: "0",
-                        total_gastos: "0",
-                        saldo: "0",
-                    });
-                },
-            ),
-        );
-        localStorage.setItem("access", "meu-token-de-acesso");
-        await getResumo();
-        expect(headerCapturado).toBe("Bearer meu-token-de-acesso");
-    });
-
-    it("não injeta Authorization header quando não há token", async () => {
-        let headerCapturado: string | null = "placeholder";
-        server.use(
-            http.get(
-                "http://localhost:8000/api/financas/resumo/",
-                ({ request }) => {
-                    headerCapturado = request.headers.get("Authorization");
-                    return HttpResponse.json({
-                        total_entradas: "0",
-                        total_gastos: "0",
-                        saldo: "0",
-                    });
-                },
-            ),
-        );
-        // localStorage foi limpo pelo afterEach do setup
-        await getResumo();
-        expect(headerCapturado).toBeNull();
-    });
-});
-
-// ---------------------------------------------------------------------------
-// Interceptor de resposta — refresh automático em caso de 401
+// Interceptor de resposta — refresh automático via cookie httpOnly
+//
+// O token JWT vive no cookie httpOnly (OWASP prática 76). O axios envia
+// cookies automaticamente via withCredentials. Não há Authorization header
+// nem armazenamento de tokens no localStorage.
 // ---------------------------------------------------------------------------
 
 describe("Interceptor de resposta — refresh automático", () => {
     it("em caso de 401, tenta o refresh e repete a requisição original", async () => {
-        const novoToken = makeFakeToken();
-        localStorage.setItem("access", "token-expirado");
-        localStorage.setItem("refresh", "refresh-valido");
-
         let chamadas = 0;
         server.use(
             http.get("http://localhost:8000/api/financas/resumo/", () => {
@@ -77,7 +30,7 @@ describe("Interceptor de resposta — refresh automático", () => {
                 });
             }),
             http.post("http://localhost:8000/api/token/refresh/", () =>
-                HttpResponse.json({ access: novoToken }),
+                HttpResponse.json({ status: "ok" }),
             ),
         );
 
@@ -86,43 +39,35 @@ describe("Interceptor de resposta — refresh automático", () => {
         expect(result.data.saldo).toBe("50");
     });
 
-    it("após refresh bem-sucedido, armazena o novo access token", async () => {
-        const novoToken = makeFakeToken();
-        localStorage.setItem("access", "token-antigo");
-        localStorage.setItem("refresh", "refresh-valido");
-
-        let chamadas = 0;
+    it("não injeta Authorization header — autenticação é via cookie", async () => {
+        let headerCapturado: string | null = "placeholder";
         server.use(
-            http.get("http://localhost:8000/api/financas/resumo/", () => {
-                chamadas++;
-                if (chamadas === 1) {
-                    return HttpResponse.json(
-                        { detail: "Unauthorized" },
-                        { status: 401 },
-                    );
-                }
-                return HttpResponse.json({
-                    total_entradas: "0",
-                    total_gastos: "0",
-                    saldo: "0",
-                });
-            }),
-            http.post("http://localhost:8000/api/token/refresh/", () =>
-                HttpResponse.json({ access: novoToken }),
+            http.get(
+                "http://localhost:8000/api/financas/resumo/",
+                ({ request }) => {
+                    headerCapturado = request.headers.get("Authorization");
+                    return HttpResponse.json({
+                        total_entradas: "0",
+                        total_gastos: "0",
+                        saldo: "0",
+                    });
+                },
             ),
         );
-
         await getResumo();
-        expect(localStorage.getItem("access")).toBe(novoToken);
+        expect(headerCapturado).toBeNull();
     });
 
-    it("em caso de 401 sem refresh token, rejeita a promise", async () => {
-        localStorage.setItem("access", "token-expirado");
-        // Sem refresh token no localStorage
-
+    it("em caso de 401 com refresh falhando, rejeita a promise", async () => {
         server.use(
             http.get("http://localhost:8000/api/financas/resumo/", () =>
                 HttpResponse.json({ detail: "Unauthorized" }, { status: 401 }),
+            ),
+            http.post("http://localhost:8000/api/token/refresh/", () =>
+                HttpResponse.json(
+                    { detail: "Token inválido" },
+                    { status: 401 },
+                ),
             ),
         );
 

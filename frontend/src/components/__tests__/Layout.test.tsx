@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { ProvedorAutenticacao } from "../../context/ContextoAutenticacao";
 import Layout from "../Layout";
-import { makeFakeToken } from "../../test/handlers";
+
 import type { ReactNode } from "react";
 
 // ---------------------------------------------------------------------------
@@ -35,7 +35,10 @@ describe("Layout", () => {
     });
 
     it("renderiza a BarraTopo com o botão de abrir menu", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         expect(
             screen.getByRole("button", { name: /abrir menu/i }),
@@ -43,13 +46,19 @@ describe("Layout", () => {
     });
 
     it("renderiza o MenuLateral com navegação", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         expect(screen.getByRole("navigation")).toBeInTheDocument();
     });
 
     it("MenuLateral exibe links de navegação", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         expect(screen.getByText("Dashboard")).toBeInTheDocument();
         expect(screen.getByText("Cadastro")).toBeInTheDocument();
@@ -57,13 +66,19 @@ describe("Layout", () => {
     });
 
     it("overlay não está visível antes de abrir o menu", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         expect(document.querySelector('[aria-hidden="true"]')).toBeNull();
     });
 
     it("exibe overlay ao clicar no botão de abrir menu", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         fireEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
         expect(
@@ -72,7 +87,10 @@ describe("Layout", () => {
     });
 
     it("fecha o overlay ao clicar nele", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
 
         fireEvent.click(screen.getByRole("button", { name: /abrir menu/i }));
@@ -84,7 +102,10 @@ describe("Layout", () => {
     });
 
     it("exibe o nome do usuário autenticado na BarraTopo", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderLayout();
         expect(screen.getByText("testuser")).toBeInTheDocument();
     });

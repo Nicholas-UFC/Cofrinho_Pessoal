@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import App from "./App";
-import { makeFakeToken } from "./test/handlers";
 
 // ---------------------------------------------------------------------------
 // App — testes de roteamento
@@ -79,8 +78,10 @@ describe("App — rotas protegidas sem autenticação", () => {
 
 describe("App — rotas protegidas com autenticação", () => {
     it("/dashboard com token renderiza o PaginaPainel", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         window.history.pushState({}, "", "/dashboard");
         render(<App />);
         await waitFor(
@@ -94,8 +95,10 @@ describe("App — rotas protegidas com autenticação", () => {
     });
 
     it("/cadastro com token renderiza o PaginaCadastro", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         window.history.pushState({}, "", "/cadastro");
         render(<App />);
         await waitFor(
@@ -108,8 +111,10 @@ describe("App — rotas protegidas com autenticação", () => {
     });
 
     it("/historico com token renderiza o PaginaHistorico", async () => {
-        localStorage.setItem("access", makeFakeToken());
-        localStorage.setItem("refresh", "fake-refresh");
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         window.history.pushState({}, "", "/historico");
         render(<App />);
         await waitFor(

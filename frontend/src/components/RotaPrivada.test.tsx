@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { screen } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";
 import { renderWithProviders } from "../test/utils";
-import { makeFakeToken } from "../test/handlers";
+
 import RotaPrivada from "./RotaPrivada";
 
 /*
@@ -59,7 +59,10 @@ describe("RotaPrivada", () => {
     });
 
     it("renderiza o conteúdo protegido quando autenticado", () => {
-        localStorage.setItem("access", makeFakeToken());
+        localStorage.setItem(
+            "usuario_info",
+            JSON.stringify({ username: "testuser", isAdmin: false }),
+        );
         renderWithProviders(<AppRoutes />, { initialEntries: ["/"] });
         expect(screen.getByTestId("protected")).toBeInTheDocument();
         expect(screen.queryByTestId("login")).not.toBeInTheDocument();

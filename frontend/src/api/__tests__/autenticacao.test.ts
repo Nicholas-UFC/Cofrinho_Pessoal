@@ -8,16 +8,15 @@ import { login } from "../autenticacao";
 // ---------------------------------------------------------------------------
 
 describe("login", () => {
-    it("retorna access e refresh tokens no login bem-sucedido", async () => {
+    it("retorna username e is_staff no login bem-sucedido", async () => {
         const resultado = await login("testuser", "testpass");
-        expect(resultado.access).toBeTruthy();
-        expect(resultado.refresh).toBeTruthy();
+        expect(resultado.username).toBeTruthy();
+        expect(typeof resultado.is_staff).toBe("boolean");
     });
 
-    it("retorna tokens como strings", async () => {
+    it("retorna username como string", async () => {
         const resultado = await login("testuser", "testpass");
-        expect(typeof resultado.access).toBe("string");
-        expect(typeof resultado.refresh).toBe("string");
+        expect(typeof resultado.username).toBe("string");
     });
 
     it("envia username e password corretos no corpo da requisição", async () => {
