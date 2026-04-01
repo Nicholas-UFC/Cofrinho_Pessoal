@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from "./cliente";
 
 export interface Categoria {
     id: number;
@@ -42,43 +42,45 @@ export interface PaginatedResponse<T> {
 }
 
 export const getCategorias = (): Promise<{ data: Categoria[] }> =>
-    api.get<Categoria[]>("/api/financas/categorias/");
+    api.get("/api/financas/categorias/") as Promise<{ data: Categoria[] }>;
 
 export const createCategoria = (nome: string): Promise<{ data: Categoria }> =>
-    api.post<Categoria>("/api/financas/categorias/", { nome });
+    api.post("/api/financas/categorias/", { nome }) as Promise<{
+        data: Categoria;
+    }>;
 
 export const getFontes = (): Promise<{ data: Fonte[] }> =>
-    api.get<Fonte[]>("/api/financas/fontes/");
+    api.get("/api/financas/fontes/") as Promise<{ data: Fonte[] }>;
 
 export const createFonte = (nome: string): Promise<{ data: Fonte }> =>
-    api.post<Fonte>("/api/financas/fontes/", { nome });
+    api.post("/api/financas/fontes/", { nome }) as Promise<{ data: Fonte }>;
 
 export const getGastos = (
     page = 1,
 ): Promise<{ data: PaginatedResponse<Gasto> }> =>
-    api.get<PaginatedResponse<Gasto>>(
-        `/api/financas/gastos/?page=${String(page)}`,
-    );
+    api.get(`/api/financas/gastos/?page=${String(page)}`) as Promise<{
+        data: PaginatedResponse<Gasto>;
+    }>;
 
 export const createGasto = (
     payload: Omit<Gasto, "id" | "categoria_nome">,
 ): Promise<{ data: Gasto }> =>
-    api.post<Gasto>("/api/financas/gastos/", payload);
+    api.post("/api/financas/gastos/", payload) as Promise<{ data: Gasto }>;
 
 export const getEntradas = (
     page = 1,
 ): Promise<{ data: PaginatedResponse<Entrada> }> =>
-    api.get<PaginatedResponse<Entrada>>(
-        `/api/financas/entradas/?page=${String(page)}`,
-    );
+    api.get(`/api/financas/entradas/?page=${String(page)}`) as Promise<{
+        data: PaginatedResponse<Entrada>;
+    }>;
 
 export const createEntrada = (
     payload: Omit<Entrada, "id" | "fonte_nome">,
 ): Promise<{ data: Entrada }> =>
-    api.post<Entrada>("/api/financas/entradas/", payload);
+    api.post("/api/financas/entradas/", payload) as Promise<{ data: Entrada }>;
 
 export const getResumo = (): Promise<{ data: Resumo }> =>
-    api.get<Resumo>("/api/financas/resumo/");
+    api.get("/api/financas/resumo/") as Promise<{ data: Resumo }>;
 
 export async function getAllGastos(): Promise<Gasto[]> {
     const all: Gasto[] = [];
