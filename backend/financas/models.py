@@ -153,6 +153,7 @@ class Gasto(CamposImutaveisMixin):
     )
     data = models.DateField()
     criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
 
     objects = ManagerAuditavel()
 
@@ -195,6 +196,7 @@ class Entrada(CamposImutaveisMixin):
     )
     data = models.DateField()
     criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
 
     objects = ManagerAuditavel()
 
