@@ -5,13 +5,13 @@ const VERSOES_BLOQUEADAS = [
   { pacote: "axios", versao: "0.30.4" },
 ];
 
-const fs = require("fs");
-const path = require("path");
+import { readFileSync, existsSync } from "fs";
+import { resolve } from "path";
 
 function versaoInstalada(pacote) {
-  const caminho = path.resolve("node_modules", pacote, "package.json");
-  if (!fs.existsSync(caminho)) return null;
-  return JSON.parse(fs.readFileSync(caminho, "utf8")).version;
+  const caminho = resolve("node_modules", pacote, "package.json");
+  if (!existsSync(caminho)) return null;
+  return JSON.parse(readFileSync(caminho, "utf8")).version;
 }
 
 let encontrou = false;
