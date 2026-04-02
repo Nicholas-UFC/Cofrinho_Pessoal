@@ -62,6 +62,9 @@ services:
       WHATSAPP_API_KEY: ${WAHA_API_KEY}
       WHATSAPP_HOOK_URL: http://backend:8000/api/whatsapp/webhook/
       WHATSAPP_HOOK_EVENTS: message.any
+      WHATSAPP_HOOK_HEADERS: '{"X-Api-Key": "${WAHA_API_KEY}"}'
+      NOWEB_STORE_ENABLED: "True"
+      NOWEB_STORE_FULL_SYNC: "True"
       WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
       WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
     ports:
