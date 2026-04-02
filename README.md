@@ -36,7 +36,7 @@ WhatsApp.
 - Isolamento multi-usuário (cada usuário vê apenas seus próprios dados)
 - Painel administrativo via Django Admin (acesso rápido pelo frontend para admins)
 - Documentação interativa via Swagger UI
-- **Bot para WhatsApp** — registre gastos, entradas e consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
+- **Bot para WhatsApp** — registre, edite, exclua e liste gastos e entradas, consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
 - Stack completa dockerizada (banco + backend + frontend + WAHA)
 - Testes automatizados: backend (pytest, 432 testes, 98% cobertura) e frontend (vitest + jest-axe, 217 testes)
 

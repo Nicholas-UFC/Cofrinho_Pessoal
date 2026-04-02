@@ -1,8 +1,8 @@
 # Bot para WhatsApp
 
-O Cofrinho Pessoal possui um bot que permite registrar gastos, entradas e
-consultar o resumo financeiro do mês diretamente pelo WhatsApp, sem precisar
-abrir o navegador.
+O Cofrinho Pessoal possui um bot que permite registrar, editar, excluir e
+listar gastos e entradas, além de consultar o resumo financeiro do mês,
+diretamente pelo WhatsApp, sem precisar abrir o navegador.
 
 ## Como funciona
 
@@ -27,7 +27,10 @@ Usuário → WhatsApp → WAHA → Webhook Django → processar_mensagem() → W
 | `1`      | Inicia o fluxo de registro de gasto           |
 | `2`      | Inicia o fluxo de registro de entrada         |
 | `3`      | Exibe o resumo financeiro do mês atual        |
+| `4`      | Gerenciar gastos (listar, editar, excluir)    |
+| `5`      | Gerenciar entradas (listar, editar, excluir)  |
 | `0`      | Cancela qualquer operação em andamento        |
+| `v`      | Volta um passo no fluxo atual                 |
 | `s`      | Confirma a operação pendente                  |
 | `n`      | Cancela a operação pendente                   |
 
@@ -92,6 +95,26 @@ O webhook filtra automaticamente:
 - Mensagens enviadas pelo próprio bot (detectadas via prefixo invisível `\u200b`)
 - Mensagens que não sejam do tipo `message` ou `message.any`
 - Payloads acima de 2 MB (proteção contra mídia pesada)
+
+## Fluxo de gerenciamento de gastos (opção 4)
+
+```text
+[menu] → 4
+  → lista paginada de gastos (5 por página)
+  → usuário digita: 2  (escolhe o item)
+  → menu de ações: 1-Editar / 2-Excluir / 0-Cancelar
+  → [editar] → "Novo valor?" → "Nova categoria?" → "Confirma?" → s → ✅ Atualizado!
+  → [excluir] → "Confirma exclusão?" → s → ✅ Excluído!
+```
+
+Navegação na lista:
+
+- `p` — página anterior
+- `n` — próxima página
+
+## Fluxo de gerenciamento de entradas (opção 5)
+
+Idêntico ao fluxo de gastos, substituindo categoria por fonte.
 
 ## Dados registrados
 
