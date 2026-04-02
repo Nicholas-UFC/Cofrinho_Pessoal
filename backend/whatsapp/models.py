@@ -15,6 +15,16 @@ class SessaoConversa(models.Model):
         ("aguardando_valor_entrada", "Aguardando Valor da Entrada"),
         ("aguardando_fonte_entrada", "Aguardando Fonte da Entrada"),
         ("confirmando_entrada", "Confirmando Entrada"),
+        ("listando_gastos", "Listando Gastos"),
+        ("listando_entradas", "Listando Entradas"),
+        ("confirmando_exclusao_gasto", "Confirmando Exclusão de Gasto"),
+        ("confirmando_exclusao_entrada", "Confirmando Exclusão de Entrada"),
+        ("editando_gasto_campo", "Escolhendo Campo do Gasto"),
+        ("editando_gasto_valor", "Editando Valor do Gasto"),
+        ("editando_gasto_categoria", "Editando Categoria do Gasto"),
+        ("editando_entrada_campo", "Escolhendo Campo da Entrada"),
+        ("editando_entrada_valor", "Editando Valor da Entrada"),
+        ("editando_entrada_fonte", "Editando Fonte da Entrada"),
     ]
 
     chat_id = models.CharField(max_length=100, unique=True)

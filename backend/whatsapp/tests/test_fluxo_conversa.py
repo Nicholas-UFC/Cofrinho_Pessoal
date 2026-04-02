@@ -1,7 +1,11 @@
+from datetime import date
+from decimal import Decimal
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import override_settings
 
+from financas.models import Categoria, Entrada, Fonte, Gasto
 from whatsapp.models import SessaoConversa
 from whatsapp.services import processar_mensagem
 
@@ -130,3 +134,85 @@ def test_comando_desconhecido_inclui_o_texto_enviado(
 ) -> None:
     resposta = processar_mensagem(CHAT_ID, "teste")
     assert "teste" in resposta
+
+
+# ---------------------------------------------------------------------------
+# Opção 4 — Gerenciar gastos
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def categoria(usuario: User) -> Categoria:
+    return Categoria.objects.create(nome="Alimentação", usuario=usuario)
+
+
+@pytest.fixture
+def fonte(usuario: User) -> Fonte:
+    return Fonte.objects.create(nome="Salário", usuario=usuario)
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_opcao_4_sem_gastos_retorna_ao_menu(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "4")
+    assert "Nenhum gasto" in resposta
+    assert "Cofrinho Pessoal" in resposta
+
+    sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
+    assert sessao.estado == "menu"
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_opcao_4_com_gastos_abre_lista(
+    usuario: User, categoria: Categoria
+) -> None:
+    Gasto.objects.create(
+        descricao="Mercado",
+        valor=Decimal("50.00"),
+        categoria=categoria,
+        usuario=usuario,
+        data=date.today(),
+    )
+    resposta = processar_mensagem(CHAT_ID, "4")
+    assert "Gastos" in resposta
+    assert "pág 1" in resposta
+
+    sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
+    assert sessao.estado == "listando_gastos"
+
+
+# ---------------------------------------------------------------------------
+# Opção 5 — Gerenciar entradas
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_opcao_5_sem_entradas_retorna_ao_menu(usuario: User) -> None:
+    resposta = processar_mensagem(CHAT_ID, "5")
+    assert "Nenhuma entrada" in resposta
+    assert "Cofrinho Pessoal" in resposta
+
+    sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
+    assert sessao.estado == "menu"
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_OWNER_USERNAME=OWNER)
+def test_opcao_5_com_entradas_abre_lista(
+    usuario: User, fonte: Fonte
+) -> None:
+    Entrada.objects.create(
+        descricao="Salário",
+        valor=Decimal("3000.00"),
+        fonte=fonte,
+        usuario=usuario,
+        data=date.today(),
+    )
+    resposta = processar_mensagem(CHAT_ID, "5")
+    assert "Entradas" in resposta
+    assert "pág 1" in resposta
+
+    sessao = SessaoConversa.objects.get(chat_id=CHAT_ID)
+    assert sessao.estado == "listando_entradas"

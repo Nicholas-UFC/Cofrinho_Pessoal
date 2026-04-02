@@ -273,3 +273,138 @@ class TestObterResumo:
         )
         resultado = _obter_resumo(user)
         assert "400.00" in resultado  # saldo = 500 - 100
+
+
+# ---------------------------------------------------------------------------
+# fmt_valor — sem banco de dados
+# ---------------------------------------------------------------------------
+
+
+from whatsapp.services.handlers_crud import (  # noqa: E402
+    fmt_item_entrada,
+    fmt_item_gasto,
+    fmt_valor,
+)
+
+
+class TestFmtValor:
+    def test_inteiro_formata_com_zeros(self) -> None:
+        assert fmt_valor(Decimal("100")) == "100,00"
+
+    def test_decimal_simples(self) -> None:
+        assert fmt_valor(Decimal("25.50")) == "25,50"
+
+    def test_milhar_usa_ponto(self) -> None:
+        assert fmt_valor(Decimal("1500.00")) == "1.500,00"
+
+    def test_milhao(self) -> None:
+        assert fmt_valor(Decimal("1000000.00")) == "1.000.000,00"
+
+    def test_valor_zero(self) -> None:
+        assert fmt_valor(Decimal("0")) == "0,00"
+
+
+# ---------------------------------------------------------------------------
+# fmt_item_gasto e fmt_item_entrada — com banco
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def user_fmt(db: None) -> User:
+    return User.objects.create_user(username="fmt_user", password="pass")
+
+
+@pytest.mark.django_db
+class TestFmtItemGasto:
+    def test_formato_contem_indice(self, user_fmt: User) -> None:
+        cat = Categoria.objects.create(nome="Lazer", usuario=user_fmt)
+        gasto = Gasto.objects.create(
+            descricao="Cinema",
+            valor=Decimal("45.00"),
+            categoria=cat,
+            usuario=user_fmt,
+            data=date(2025, 3, 15),
+        )
+        resultado = fmt_item_gasto(2, gasto)
+        assert resultado.startswith("2.")
+
+    def test_formato_contem_valor_br(self, user_fmt: User) -> None:
+        cat = Categoria.objects.create(nome="Lazer", usuario=user_fmt)
+        gasto = Gasto.objects.create(
+            descricao="Cinema",
+            valor=Decimal("1500.50"),
+            categoria=cat,
+            usuario=user_fmt,
+            data=date(2025, 3, 15),
+        )
+        assert "1.500,50" in fmt_item_gasto(1, gasto)
+
+    def test_formato_contem_categoria(self, user_fmt: User) -> None:
+        cat = Categoria.objects.create(nome="Alimentação", usuario=user_fmt)
+        gasto = Gasto.objects.create(
+            descricao="Mercado",
+            valor=Decimal("80.00"),
+            categoria=cat,
+            usuario=user_fmt,
+            data=date(2025, 3, 15),
+        )
+        assert "Alimentação" in fmt_item_gasto(1, gasto)
+
+    def test_formato_contem_data(self, user_fmt: User) -> None:
+        cat = Categoria.objects.create(nome="Lazer", usuario=user_fmt)
+        gasto = Gasto.objects.create(
+            descricao="Cinema",
+            valor=Decimal("30.00"),
+            categoria=cat,
+            usuario=user_fmt,
+            data=date(2025, 7, 4),
+        )
+        assert "04/07" in fmt_item_gasto(1, gasto)
+
+
+@pytest.mark.django_db
+class TestFmtItemEntrada:
+    def test_formato_contem_indice(self, user_fmt: User) -> None:
+        fonte = Fonte.objects.create(nome="Salário", usuario=user_fmt)
+        entrada = Entrada.objects.create(
+            descricao="Mensal",
+            valor=Decimal("3000.00"),
+            fonte=fonte,
+            usuario=user_fmt,
+            data=date(2025, 1, 5),
+        )
+        resultado = fmt_item_entrada(3, entrada)
+        assert resultado.startswith("3.")
+
+    def test_formato_contem_valor_br(self, user_fmt: User) -> None:
+        fonte = Fonte.objects.create(nome="Salário", usuario=user_fmt)
+        entrada = Entrada.objects.create(
+            descricao="Mensal",
+            valor=Decimal("2500.75"),
+            fonte=fonte,
+            usuario=user_fmt,
+            data=date(2025, 1, 5),
+        )
+        assert "2.500,75" in fmt_item_entrada(1, entrada)
+
+    def test_formato_contem_fonte(self, user_fmt: User) -> None:
+        fonte = Fonte.objects.create(nome="Freelance", usuario=user_fmt)
+        entrada = Entrada.objects.create(
+            descricao="Projeto",
+            valor=Decimal("500.00"),
+            fonte=fonte,
+            usuario=user_fmt,
+            data=date(2025, 1, 5),
+        )
+        assert "Freelance" in fmt_item_entrada(1, entrada)
+
+    def test_formato_contem_data(self, user_fmt: User) -> None:
+        fonte = Fonte.objects.create(nome="Salário", usuario=user_fmt)
+        entrada = Entrada.objects.create(
+            descricao="Mensal",
+            valor=Decimal("3000.00"),
+            fonte=fonte,
+            usuario=user_fmt,
+            data=date(2025, 12, 31),
+        )
+        assert "31/12" in fmt_item_entrada(1, entrada)

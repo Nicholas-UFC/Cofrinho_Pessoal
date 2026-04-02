@@ -79,6 +79,16 @@ class TestSessaoConversa:
             "aguardando_valor_entrada",
             "aguardando_fonte_entrada",
             "confirmando_entrada",
+            "listando_gastos",
+            "listando_entradas",
+            "confirmando_exclusao_gasto",
+            "confirmando_exclusao_entrada",
+            "editando_gasto_campo",
+            "editando_gasto_valor",
+            "editando_gasto_categoria",
+            "editando_entrada_campo",
+            "editando_entrada_valor",
+            "editando_entrada_fonte",
         ]
 
     def test_mudar_estado_e_salvar(self) -> None:
