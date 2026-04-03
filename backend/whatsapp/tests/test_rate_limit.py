@@ -58,7 +58,7 @@ def test_tres_mensagens_rapidas_nao_ativam_rate_limit() -> None:
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_mensagens_espalhadas_nao_ativam_rate_limit() -> None:
     _enviar("menu", 0)
-    _enviar("menu", 6)   # fora da janela de 5s
+    _enviar("menu", 6)  # fora da janela de 5s
     resposta = _enviar("menu", 12)
     assert "Muitas mensagens" not in resposta
 
@@ -114,7 +114,7 @@ def test_apos_janela_expirar_volta_a_funcionar() -> None:
     _enviar("menu", 0)
     _enviar("menu", 1)
     _enviar("menu", 2)
-    _enviar("menu", 3)   # rate limit
+    _enviar("menu", 3)  # rate limit
 
     # Após 6 segundos (fora da janela de 5s), deve funcionar novamente
     resposta = _enviar("menu", 9)

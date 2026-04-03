@@ -63,18 +63,18 @@ def test_endpoint_truncado_no_log(client: Client) -> None:
     endpoint_longo = "/api/" + "x" * 300
     client.get(endpoint_longo)
 
-    log = LogAcesso.objects.filter(
-        endpoint__startswith="/api/"
-    ).order_by("-criado_em").first()
+    log = (
+        LogAcesso.objects.filter(endpoint__startswith="/api/")
+        .order_by("-criado_em")
+        .first()
+    )
     assert log is None or len(log.endpoint) <= _MAX_ENDPOINT
 
 
 @pytest.mark.django_db
 def test_user_agent_com_nao_ascii_sanitizado(client: Client) -> None:
     agente_unicode = "Mozilla \u00e9\u00e0 5.0 \x00 null byte"
-    client.get(
-        "/api/financas/gastos/", HTTP_USER_AGENT=agente_unicode
-    )
+    client.get("/api/financas/gastos/", HTTP_USER_AGENT=agente_unicode)
 
     log = LogAcesso.objects.filter(endpoint="/api/financas/gastos/").first()
     assert log is not None

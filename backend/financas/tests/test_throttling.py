@@ -101,9 +101,7 @@ def test_usuario_anonimo_respeita_limite(
     """
     limite = 20
     for _ in range(limite):
-        cliente_anonimo.post(
-            "/api/token/", {"username": "x", "password": "y"}
-        )
+        cliente_anonimo.post("/api/token/", {"username": "x", "password": "y"})
 
     resp = cliente_anonimo.post(
         "/api/token/", {"username": "x", "password": "y"}
@@ -119,9 +117,7 @@ def test_limite_anonimo_menor_que_autenticado(
 ) -> None:
     """Anônimo tem limite menor: após 20, retorna 429; auth ainda passa."""
     for _ in range(21):
-        cliente_anonimo.post(
-            "/api/token/", {"username": "x", "password": "y"}
-        )
+        cliente_anonimo.post("/api/token/", {"username": "x", "password": "y"})
 
     resp_anonimo = cliente_anonimo.post(
         "/api/token/", {"username": "x", "password": "y"}

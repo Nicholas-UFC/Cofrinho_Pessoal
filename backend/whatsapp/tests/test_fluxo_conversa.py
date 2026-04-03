@@ -48,16 +48,19 @@ def usuario(db: None) -> User:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("entrada", [
-    "menu",
-    "MENU",
-    "Menu",
-    "M E N U",
-    "M  E  N  U",
-    "  menu  ",
-    "  M E N U  ",
-    "mEnU",
-])
+@pytest.mark.parametrize(
+    "entrada",
+    [
+        "menu",
+        "MENU",
+        "Menu",
+        "M E N U",
+        "M  E  N  U",
+        "  menu  ",
+        "  M E N U  ",
+        "mEnU",
+    ],
+)
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_menu_aceita_qualquer_forma_de_escrita(
@@ -200,9 +203,7 @@ def test_opcao_5_sem_entradas_retorna_ao_menu(usuario: User) -> None:
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_opcao_5_com_entradas_abre_lista(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_opcao_5_com_entradas_abre_lista(usuario: User, fonte: Fonte) -> None:
     Entrada.objects.create(
         descricao="Salário",
         valor=Decimal("3000.00"),

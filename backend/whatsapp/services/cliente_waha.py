@@ -36,9 +36,7 @@ def enviar_mensagem(chat_id: str, texto: str) -> None:
         "session": getattr(settings, "WAHA_SESSION", "default"),
     }
     try:
-        resposta = httpx.post(
-            url, json=payload, headers=headers, timeout=10
-        )
+        resposta = httpx.post(url, json=payload, headers=headers, timeout=10)
         _registrar_id_enviado(resposta)
     except httpx.ConnectError as exc:
         logger.error(

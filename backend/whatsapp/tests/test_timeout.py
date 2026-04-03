@@ -110,8 +110,8 @@ def test_timeout_limpa_dados_temporarios() -> None:
 def test_timeout_reseta_qualquer_estado_intermediario() -> None:
     """Timeout funciona em todos os estados intermediários."""
     estados_intermediarios = [
-        ("1",    "aguardando_valor_gasto"),
-        ("2",    "aguardando_valor_entrada"),
+        ("1", "aguardando_valor_gasto"),
+        ("2", "aguardando_valor_entrada"),
     ]
     for comando, estado_esperado in estados_intermediarios:
         SessaoConversa.objects.filter(chat_id=CHAT_ID).delete()

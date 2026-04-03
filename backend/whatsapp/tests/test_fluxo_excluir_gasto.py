@@ -82,9 +82,7 @@ def test_confirmacao_exibe_criado_e_editado(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_indice_invalido_retorna_erro(
-    usuario: User, gasto: Gasto
-) -> None:
+def test_indice_invalido_retorna_erro(usuario: User, gasto: Gasto) -> None:
     _abrir_lista()
     resposta = processar_mensagem(CHAT_ID, "x99")
     assert "inválido" in resposta.lower()
@@ -173,9 +171,7 @@ def test_normalizacao_x_maiusculo(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_exclusao_gera_log_auditoria(
-    usuario: User, gasto: Gasto
-) -> None:
+def test_exclusao_gera_log_auditoria(usuario: User, gasto: Gasto) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "x1")
     processar_mensagem(CHAT_ID, "s")
@@ -195,12 +191,18 @@ def test_lista_atualiza_apos_exclusao(
     usuario: User, categoria: Categoria
 ) -> None:
     g1 = Gasto.objects.create(
-        usuario=usuario, descricao="A", valor=Decimal("10.00"),
-        categoria=categoria, data=date(2026, 4, 2),
+        usuario=usuario,
+        descricao="A",
+        valor=Decimal("10.00"),
+        categoria=categoria,
+        data=date(2026, 4, 2),
     )
     g2 = Gasto.objects.create(
-        usuario=usuario, descricao="B", valor=Decimal("20.00"),
-        categoria=categoria, data=date(2026, 4, 1),
+        usuario=usuario,
+        descricao="B",
+        valor=Decimal("20.00"),
+        categoria=categoria,
+        data=date(2026, 4, 1),
     )
     _abrir_lista()
     processar_mensagem(CHAT_ID, "x1")  # exclui g1 (mais recente)

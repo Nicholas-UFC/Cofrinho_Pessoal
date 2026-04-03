@@ -15,9 +15,7 @@ def validar_valor_positivo(valor: Decimal) -> None:
 def validar_caracteres_seguros(valor: str) -> None:
     """Rejeita null bytes, quebras de linha e path traversal — OWASP 14-16."""
     if _REGEX_PERIGOSO.search(valor):
-        raise ValidationError(
-            "O campo contém caracteres não permitidos."
-        )
+        raise ValidationError("O campo contém caracteres não permitidos.")
 
 
 class ValidadorComplexidadeSenha:
@@ -25,18 +23,14 @@ class ValidadorComplexidadeSenha:
 
     _ESPECIAIS = re.compile(r"[!@#$%^&*()\-_=+\[\]{};:'\",.<>?/\\|`~]")
 
-    def validate(
-        self, password: str, _user: object = None
-    ) -> None:
+    def validate(self, password: str, _user: object = None) -> None:
         erros = []
         if not any(c.isupper() for c in password):
             erros.append("pelo menos uma letra maiúscula")
         if not any(c.isdigit() for c in password):
             erros.append("pelo menos um número")
         if not self._ESPECIAIS.search(password):
-            erros.append(
-                "pelo menos um caractere especial (!@#$%^&*...)"
-            )
+            erros.append("pelo menos um caractere especial (!@#$%^&*...)")
         if erros:
             raise ValidationError(
                 f"A senha precisa conter: {', '.join(erros)}."

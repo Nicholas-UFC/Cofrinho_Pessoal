@@ -47,16 +47,12 @@ def _obter_usuario() -> User | None:
 
 def _listar_categorias(usuario: User) -> str:
     categorias = Categoria.objects.filter(usuario=usuario)
-    return "\n".join(
-        f"{i + 1}. {c.nome}" for i, c in enumerate(categorias)
-    )
+    return "\n".join(f"{i + 1}. {c.nome}" for i, c in enumerate(categorias))
 
 
 def _listar_fontes(usuario: User) -> str:
     fontes = Fonte.objects.filter(usuario=usuario)
-    return "\n".join(
-        f"{i + 1}. {f.nome}" for i, f in enumerate(fontes)
-    )
+    return "\n".join(f"{i + 1}. {f.nome}" for i, f in enumerate(fontes))
 
 
 def _obter_resumo(usuario: User) -> str:
@@ -109,9 +105,7 @@ def _sem_cadastro(sessao: SessaoConversa, tipo: str) -> str:
     )
 
 
-def _escolher_item(
-    itens: list, corpo: str
-) -> Categoria | Fonte | None:
+def _escolher_item(itens: list, corpo: str) -> Categoria | Fonte | None:
     try:
         idx = int(corpo) - 1
         if 0 <= idx < len(itens):

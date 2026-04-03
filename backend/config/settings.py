@@ -248,9 +248,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "detalhado": {
-            "format": (
-                "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-            ),
+            "format": ("%(asctime)s [%(levelname)s] %(name)s: %(message)s"),
         },
     },
     "handlers": {

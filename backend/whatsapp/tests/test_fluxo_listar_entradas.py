@@ -30,9 +30,7 @@ def fonte(usuario: User) -> Fonte:
     return Fonte.objects.create(nome="Salário", usuario=usuario)
 
 
-def _criar_entradas(
-    usuario: User, fonte: Fonte, n: int
-) -> list[Entrada]:
+def _criar_entradas(usuario: User, fonte: Fonte, n: int) -> list[Entrada]:
     entradas = []
     for i in range(n):
         entradas.append(
@@ -65,9 +63,7 @@ def test_opcao_5_entra_em_listando_entradas(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_lista_exibe_valor_fonte_e_data(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_lista_exibe_valor_fonte_e_data(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 1)
     resposta = processar_mensagem(CHAT_ID, "5")
     assert "100,00" in resposta
@@ -87,9 +83,7 @@ def test_lista_vazia_retorna_mensagem_e_volta_ao_menu(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_lista_exibe_5_por_pagina(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_lista_exibe_5_por_pagina(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 7)
     resposta = processar_mensagem(CHAT_ID, "5")
     assert "1." in resposta
@@ -99,9 +93,7 @@ def test_lista_exibe_5_por_pagina(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_lista_exibe_numero_de_paginas(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_lista_exibe_numero_de_paginas(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 7)
     resposta = processar_mensagem(CHAT_ID, "5")
     assert "pág 1/2" in resposta
@@ -114,9 +106,7 @@ def test_lista_exibe_numero_de_paginas(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_proxima_pagina_avanca(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_proxima_pagina_avanca(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 7)
     processar_mensagem(CHAT_ID, "5")
     resposta = processar_mensagem(CHAT_ID, "p")
@@ -129,9 +119,7 @@ def test_proxima_pagina_avanca(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_pagina_anterior_volta(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_pagina_anterior_volta(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 7)
     processar_mensagem(CHAT_ID, "5")
     processar_mensagem(CHAT_ID, "p")
@@ -154,9 +142,7 @@ def test_anterior_na_primeira_pagina_avisa(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_proxima_na_ultima_pagina_avisa(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_proxima_na_ultima_pagina_avisa(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 3)
     processar_mensagem(CHAT_ID, "5")
     resposta = processar_mensagem(CHAT_ID, "p")
@@ -172,9 +158,7 @@ def test_proxima_na_ultima_pagina_avisa(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_zero_sai_para_menu(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_zero_sai_para_menu(usuario: User, fonte: Fonte) -> None:
     _criar_entradas(usuario, fonte, 1)
     processar_mensagem(CHAT_ID, "5")
     resposta = processar_mensagem(CHAT_ID, "0")

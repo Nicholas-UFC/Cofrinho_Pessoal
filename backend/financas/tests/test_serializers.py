@@ -187,9 +187,7 @@ class TestFonteSerializer:
         assert not s.is_valid()
         assert "nome" in s.errors
 
-    def test_usuario_excluido_da_saida(
-        self, user: User, fonte: Fonte
-    ) -> None:
+    def test_usuario_excluido_da_saida(self, user: User, fonte: Fonte) -> None:
         s = FonteSerializer(instance=fonte)
         assert "usuario" not in s.data
 
@@ -283,9 +281,7 @@ class TestGastoSerializer:
 
 @pytest.mark.django_db
 class TestEntradaSerializer:
-    def test_valor_positivo_valido(
-        self, user: User, fonte: Fonte
-    ) -> None:
+    def test_valor_positivo_valido(self, user: User, fonte: Fonte) -> None:
         s = EntradaSerializer(
             data={
                 "descricao": "Salário",
@@ -297,9 +293,7 @@ class TestEntradaSerializer:
         )
         assert s.is_valid(), s.errors
 
-    def test_valor_zero_invalido(
-        self, user: User, fonte: Fonte
-    ) -> None:
+    def test_valor_zero_invalido(self, user: User, fonte: Fonte) -> None:
         s = EntradaSerializer(
             data={
                 "descricao": "Inválido",
@@ -312,9 +306,7 @@ class TestEntradaSerializer:
         assert not s.is_valid()
         assert "valor" in s.errors
 
-    def test_valor_negativo_invalido(
-        self, user: User, fonte: Fonte
-    ) -> None:
+    def test_valor_negativo_invalido(self, user: User, fonte: Fonte) -> None:
         s = EntradaSerializer(
             data={
                 "descricao": "Inválido",
@@ -327,9 +319,7 @@ class TestEntradaSerializer:
         assert not s.is_valid()
         assert "valor" in s.errors
 
-    def test_usuario_excluido_da_saida(
-        self, user: User, fonte: Fonte
-    ) -> None:
+    def test_usuario_excluido_da_saida(self, user: User, fonte: Fonte) -> None:
         entrada = Entrada.objects.create(
             descricao="Salário",
             valor=Decimal("3000.00"),

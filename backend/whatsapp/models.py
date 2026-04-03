@@ -35,9 +35,7 @@ class SessaoConversa(models.Model):
         blank=True,
         related_name="sessoes_conversa",
     )
-    estado = models.CharField(
-        max_length=50, choices=ESTADOS, default="menu"
-    )
+    estado = models.CharField(max_length=50, choices=ESTADOS, default="menu")
     dados_temporarios = models.JSONField(default=dict)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
