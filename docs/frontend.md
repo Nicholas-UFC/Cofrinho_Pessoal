@@ -113,7 +113,7 @@ pnpm test:watch       # modo watch
 pnpm test:coverage    # com relatório de cobertura
 ```
 
-221 testes organizados em 25 arquivos. Cobertura por área:
+217 testes organizados em 25 arquivos. Cobertura por área:
 
 | Área | O que é testado |
 | --- | --- |

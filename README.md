@@ -38,7 +38,7 @@ WhatsApp.
 - Documentação interativa via Swagger UI
 - **Bot para WhatsApp** — registre, edite, exclua e liste gastos e entradas, consulte o resumo do mês via mensagem, com fluxo guiado por menus, timeout de sessão e rate limit
 - Stack completa dockerizada (banco + backend + frontend + WAHA)
-- Testes automatizados: backend (pytest, 432 testes, 98% cobertura) e frontend (vitest + jest-axe, 217 testes)
+- Testes automatizados: backend (pytest, 539 testes, 97% cobertura) e frontend (vitest + jest-axe, 217 testes)
 
 ## O que ainda não está implementado
 
