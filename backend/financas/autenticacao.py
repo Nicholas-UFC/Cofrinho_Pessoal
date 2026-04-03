@@ -1,10 +1,13 @@
+from typing import Any
+
+from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class CookieJWTAuthentication(JWTAuthentication):
     """Lê o token JWT do cookie 'access' — OWASP prática 76."""
 
-    def authenticate(self, request):  # type: ignore[override]
+    def authenticate(self, request: Request) -> tuple[Any, Any] | None:  # type: ignore[override]
         raw_token = request.COOKIES.get("access")
         if raw_token is None:
             return None

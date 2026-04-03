@@ -27,9 +27,21 @@ PREFIXO_BOT = "\u200b"
 
 _TRIGGER_MENU = ("menu",)
 
-_JANELA_RATE_LIMIT = 5    # segundos
-_MAX_MENSAGENS = 3         # mensagens permitidas na janela
-_TIMEOUT_SESSAO = 5        # minutos sem resposta para resetar o estado
+_JANELA_RATE_LIMIT = 5  # segundos
+_MAX_MENSAGENS = 3  # mensagens permitidas na janela
+_TIMEOUT_SESSAO = 5  # minutos sem resposta para resetar o estado
+
+_ESTADO_POR_OPCAO = {
+    "1": (
+        "aguardando_valor_gasto",
+        "Qual o valor do gasto? (ex: 25,50 ou 1.500,00)\n"
+        "Digite 0 para cancelar.",
+    ),
+    "2": (
+        "aguardando_valor_entrada",
+        "Qual o valor da entrada? (ex: 3.000,00)\nDigite 0 para cancelar.",
+    ),
+}
 
 
 def _agora() -> datetime:
@@ -56,22 +68,18 @@ def _verificar_timeout(sessao: SessaoConversa) -> str | None:
     sessao.save()
     return (
         "⏱️ *Sessão expirada por inatividade.*\n\n"
-        "Sua operação anterior foi cancelada.\n\n"
-        + MENU_TEXTO
+        "Sua operação anterior foi cancelada.\n\n" + MENU_TEXTO
     )
 
 
-def _verificar_rate_limit(
-    sessao: SessaoConversa, corpo: str
-) -> str | None:
+def _verificar_rate_limit(sessao: SessaoConversa, corpo: str) -> str | None:
     """Retorna mensagem de rate limit se muitas mensagens chegaram rápido."""
     agora = _agora()
     janela_inicio = agora - timedelta(seconds=_JANELA_RATE_LIMIT)
 
     recentes = sessao.dados_temporarios.get("mensagens_recentes", [])
     recentes = [
-        m for m in recentes
-        if datetime.fromisoformat(m["ts"]) > janela_inicio
+        m for m in recentes if datetime.fromisoformat(m["ts"]) > janela_inicio
     ]
     recentes.append({"ts": agora.isoformat(), "corpo": corpo})
 
@@ -87,8 +95,7 @@ def _verificar_rate_limit(
         "⚠️ *Muitas mensagens ao mesmo tempo!*\n\n"
         "O sistema não consegue processar tantas mensagens "
         "simultâneas. Reenvie-as pausadamente.\n\n"
-        "*Mensagens recebidas neste período:*\n"
-        + lista
+        "*Mensagens recebidas neste período:*\n" + lista
     )
 
 
@@ -97,42 +104,36 @@ def _normalizar_corpo(corpo: str) -> str:
     return corpo.lower().replace(" ", "")
 
 
+def _processar_resumo() -> str:
+    usuario = _obter_usuario()
+    if not usuario:
+        return "❌ Usuário não configurado."
+    return _obter_resumo(usuario)
+
+
 def _processar_menu(sessao: SessaoConversa, corpo: str) -> str:
     if corpo in _TRIGGER_MENU:
         return MENU_TEXTO
-    if corpo == "1":
-        sessao.estado = "aguardando_valor_gasto"
+    if corpo in _ESTADO_POR_OPCAO:
+        estado, mensagem = _ESTADO_POR_OPCAO[corpo]
+        sessao.estado = estado
         sessao.save()
-        return (
-            "Qual o valor do gasto? (ex: 25,50 ou 1.500,00)\n"
-            "Digite 0 para cancelar."
-        )
-    if corpo == "2":
-        sessao.estado = "aguardando_valor_entrada"
-        sessao.save()
-        return (
-            "Qual o valor da entrada? (ex: 3.000,00)\n"
-            "Digite 0 para cancelar."
-        )
+        return mensagem
     if corpo == "3":
-        usuario = _obter_usuario()
-        if not usuario:
-            return "❌ Usuário não configurado."
-        return _obter_resumo(usuario)
+        return _processar_resumo()
     if corpo == "4":
         from whatsapp.services.handlers_crud import (  # noqa: PLC0415
             abrir_lista_gastos,
         )
+
         return abrir_lista_gastos(sessao)
     if corpo == "5":
         from whatsapp.services.handlers_crud import (  # noqa: PLC0415
             abrir_lista_entradas,
         )
+
         return abrir_lista_entradas(sessao)
-    return (
-        f"❓ Não conheço o comando *{corpo}*.\n\n"
-        + COMANDOS_CONHECIDOS
-    )
+    return f"❓ Não conheço o comando *{corpo}*.\n\n" + COMANDOS_CONHECIDOS
 
 
 def processar_mensagem(chat_id: str, corpo: str) -> str:
@@ -174,6 +175,7 @@ def processar_mensagem(chat_id: str, corpo: str) -> str:
         from whatsapp.services.handlers_crud import (  # noqa: PLC0415
             processar_estado_crud,
         )
+
         resposta = processar_estado_crud(sessao, corpo)
     else:
         handler = despachantes.get(sessao.estado)
