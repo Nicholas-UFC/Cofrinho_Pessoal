@@ -4,12 +4,11 @@ import pytest
 from django.test import Client, override_settings
 
 # ---------------------------------------------------------------------------
-# Autenticação do webhook
+# Autenticação do webhook via WAHA_WEBHOOK_SECRET
 #
-# A validação de API key foi removida pois o WAHA envia a chave via header
-# WHATSAPP_HOOK_HEADERS configurado no docker-compose, tornando a validação
-# no Django redundante para o engine NOWEB.
-# O webhook aceita qualquer requisição válida e retorna 200.
+# Quando WAHA_WEBHOOK_SECRET está configurado, o Django exige o header
+# X-Webhook-Secret com o valor correto antes de processar qualquer payload.
+# Quando vazio (modo dev), aceita todas as requisições.
 # ---------------------------------------------------------------------------
 
 _PAYLOAD_VALIDO = json.dumps(
@@ -25,48 +24,47 @@ _PAYLOAD_VALIDO = json.dumps(
 
 
 @pytest.mark.django_db
-@override_settings(WAHA_API_KEY="chave-secreta-teste", WAHA_GROUP_ID="")
-def test_webhook_sem_api_key_retorna_200(client: Client) -> None:
-    """Sem API key no header, o webhook ainda aceita — validação removida."""
+@override_settings(WAHA_WEBHOOK_SECRET="token-secreto", WAHA_GROUP_ID="")
+def test_webhook_sem_token_retorna_403(client: Client) -> None:
+    """Sem o header X-Webhook-Secret, o webhook rejeita com 403."""
     resp = client.post(
         "/api/whatsapp/webhook/",
         data=_PAYLOAD_VALIDO,
         content_type="application/json",
     )
-    assert resp.status_code == 200
+    assert resp.status_code == 403
 
 
 @pytest.mark.django_db
-@override_settings(WAHA_API_KEY="chave-secreta-teste", WAHA_GROUP_ID="")
-def test_webhook_com_api_key_errada_retorna_200(client: Client) -> None:
-    """API key errada não rejeita mais — validação foi removida do Django."""
+@override_settings(WAHA_WEBHOOK_SECRET="token-secreto", WAHA_GROUP_ID="")
+def test_webhook_com_token_errado_retorna_403(client: Client) -> None:
+    """Token errado no header também deve ser rejeitado com 403."""
     resp = client.post(
         "/api/whatsapp/webhook/",
         data=_PAYLOAD_VALIDO,
         content_type="application/json",
-        HTTP_X_API_KEY="chave-errada",
+        HTTP_X_WEBHOOK_SECRET="token-errado",
+    )
+    assert resp.status_code == 403
+
+
+@pytest.mark.django_db
+@override_settings(WAHA_WEBHOOK_SECRET="token-secreto", WAHA_GROUP_ID="")
+def test_webhook_com_token_correto_processa(client: Client) -> None:
+    """Token correto no header deve permitir o processamento."""
+    resp = client.post(
+        "/api/whatsapp/webhook/",
+        data=_PAYLOAD_VALIDO,
+        content_type="application/json",
+        HTTP_X_WEBHOOK_SECRET="token-secreto",
     )
     assert resp.status_code == 200
 
 
 @pytest.mark.django_db
-@override_settings(WAHA_API_KEY="chave-secreta-teste", WAHA_GROUP_ID="")
-def test_webhook_com_api_key_correta_processa(client: Client) -> None:
-    resp = client.post(
-        "/api/whatsapp/webhook/",
-        data=_PAYLOAD_VALIDO,
-        content_type="application/json",
-        HTTP_X_API_KEY="chave-secreta-teste",
-    )
-    assert resp.status_code == 200
-
-
-@pytest.mark.django_db
-@override_settings(WAHA_API_KEY="")
-def test_webhook_sem_chave_configurada_permite_qualquer(
-    client: Client,
-) -> None:
-    """Quando WAHA_API_KEY não está configurada, não rejeita (modo dev)."""
+@override_settings(WAHA_WEBHOOK_SECRET="", WAHA_GROUP_ID="")
+def test_webhook_sem_segredo_configurado_aceita_tudo(client: Client) -> None:
+    """WAHA_WEBHOOK_SECRET vazio = modo dev; aceita sem header."""
     resp = client.post(
         "/api/whatsapp/webhook/",
         data=_PAYLOAD_VALIDO,

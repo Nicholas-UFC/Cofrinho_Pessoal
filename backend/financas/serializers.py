@@ -6,6 +6,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import Token
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
+from financas.services.entrada import criar_entrada
+from financas.services.gasto import criar_gasto
 from financas.validators import validar_caracteres_seguros
 
 
@@ -77,6 +79,17 @@ class GastoSerializer(serializers.ModelSerializer):
         validar_caracteres_seguros(valor)
         return valor
 
+    def create(self, validated_data: dict) -> Gasto:
+        # usuario é injetado via perform_create(serializer.save(usuario=...)).
+        usuario = validated_data.pop("usuario")
+        return criar_gasto(
+            usuario=usuario,
+            valor=validated_data["valor"],
+            categoria=validated_data["categoria"],
+            descricao=validated_data["descricao"],
+            data=validated_data["data"],
+        )
+
 
 # Serializer da tabela de entradas de dinheiro.
 class EntradaSerializer(serializers.ModelSerializer):
@@ -90,3 +103,14 @@ class EntradaSerializer(serializers.ModelSerializer):
     def validate_descricao(self, valor: str) -> str:
         validar_caracteres_seguros(valor)
         return valor
+
+    def create(self, validated_data: dict) -> Entrada:
+        # usuario é injetado via perform_create(serializer.save(usuario=...)).
+        usuario = validated_data.pop("usuario")
+        return criar_entrada(
+            usuario=usuario,
+            valor=validated_data["valor"],
+            fonte=validated_data["fonte"],
+            descricao=validated_data["descricao"],
+            data=validated_data["data"],
+        )

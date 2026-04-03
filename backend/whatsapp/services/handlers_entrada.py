@@ -3,7 +3,8 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 
-from financas.models import Entrada, Fonte
+from financas.models import Fonte
+from financas.services.entrada import criar_entrada
 from whatsapp.models import SessaoConversa
 from whatsapp.services.utils import (
     MENU_TEXTO,
@@ -31,7 +32,7 @@ def _texto_confirmacao_entrada(sessao: SessaoConversa) -> str:
 def _salvar_entrada(sessao: SessaoConversa, usuario: User) -> None:
     valor = Decimal(sessao.dados_temporarios["valor"])
     fonte = Fonte.objects.get(pk=sessao.dados_temporarios["fonte_id"])
-    Entrada.objects.create(
+    criar_entrada(
         usuario=usuario,
         descricao=f"Via WhatsApp - {fonte.nome}",
         valor=valor,

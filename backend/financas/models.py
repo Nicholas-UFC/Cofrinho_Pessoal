@@ -169,6 +169,18 @@ class Gasto(CamposImutaveisMixin):
                 name="gasto_valor_positivo",
             )
         ]
+        indexes: ClassVar = [
+            # Cobre filtragens por usuário+data (ordenação padrão e filtros).
+            models.Index(
+                fields=["usuario", "data"],
+                name="idx_gasto_usuario_data",
+            ),
+            # Cobre filtragens por usuário+categoria+data.
+            models.Index(
+                fields=["usuario", "categoria", "data"],
+                name="idx_gasto_usuario_categoria_data",
+            ),
+        ]
 
     def __str__(self) -> str:
         return f"{self.descricao} - R$ {self.valor}"
@@ -211,6 +223,18 @@ class Entrada(CamposImutaveisMixin):
                 condition=Q(valor__gt=0),
                 name="entrada_valor_positivo",
             )
+        ]
+        indexes: ClassVar = [
+            # Cobre filtragens por usuário+data (ordenação padrão e filtros).
+            models.Index(
+                fields=["usuario", "data"],
+                name="idx_entrada_usuario_data",
+            ),
+            # Cobre filtragens por usuário+fonte+data.
+            models.Index(
+                fields=["usuario", "fonte", "data"],
+                name="idx_entrada_usuario_fonte_data",
+            ),
         ]
 
     def __str__(self) -> str:

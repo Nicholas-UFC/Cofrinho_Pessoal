@@ -9,6 +9,25 @@ O formato segue [Versionamento Semântico](https://semver.org/): `MAJOR.MINOR.PA
 
 ---
 
+## [1.10.0] — 2026-04-03 — `feat/melhorias-arquitetura`
+
+### 🔒 security: adiciona autenticação por token no webhook do WhatsApp
+> Endpoint `/api/whatsapp/webhook/` aceitava qualquer POST sem validação. Agora exige o header `X-Webhook-Secret` com o valor de `WAHA_WEBHOOK_SECRET`. Quando a variável está vazia, aceita tudo (modo dev). Retorna 403 silencioso para tokens inválidos.
+- Adicionados: _(nenhum)_
+- Modificados: `backend/config/settings.py`, `backend/whatsapp/views.py`, `backend/whatsapp/tests/test_webhook_autenticacao.py`, `.env.example`
+
+### ⚡ perf: adiciona índices compostos em Gasto e Entrada
+> Queries de listagem com filtros `data__gte`, `data__lte` e `categoria`/`fonte` faziam full scan. Quatro índices compostos cobrem os padrões de acesso mais frequentes dos ViewSets.
+- Adicionados: `backend/financas/migrations/0006_entrada_idx_entrada_usuario_data_and_more.py`
+- Modificados: `backend/financas/models.py`
+
+### 🏗️ arch: extrai service layer para criar e editar gastos e entradas
+> Lógica de `Gasto.objects.create()` e `Entrada.objects.create()` estava duplicada nos handlers do bot e nos serializers da API REST. Centraliza em `financas/services/` para garantir uma única fonte de verdade para regras de negócio futuras.
+- Adicionados: `backend/financas/services/__init__.py`, `backend/financas/services/gasto.py`, `backend/financas/services/entrada.py`
+- Modificados: `backend/financas/serializers.py`, `backend/whatsapp/services/handlers_gasto.py`, `backend/whatsapp/services/handlers_entrada.py`, `backend/whatsapp/services/handlers_edicao.py`
+
+---
+
 ## [1.9.0] — 2026-04-03 — `fix/waha-noweb-webhook`
 
 ### 🔥 refactor: remove services.py legado substituído pelo pacote services/

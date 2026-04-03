@@ -3,7 +3,8 @@ from decimal import Decimal
 
 from django.contrib.auth.models import User
 
-from financas.models import Categoria, Gasto
+from financas.models import Categoria
+from financas.services.gasto import criar_gasto
 from whatsapp.models import SessaoConversa
 from whatsapp.services.utils import (
     MENU_TEXTO,
@@ -33,7 +34,7 @@ def _salvar_gasto(sessao: SessaoConversa, usuario: User) -> None:
     categoria = Categoria.objects.get(
         pk=sessao.dados_temporarios["categoria_id"]
     )
-    Gasto.objects.create(
+    criar_gasto(
         usuario=usuario,
         descricao=f"Via WhatsApp - {categoria.nome}",
         valor=valor,

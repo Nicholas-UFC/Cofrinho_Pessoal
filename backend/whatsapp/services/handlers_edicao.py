@@ -2,6 +2,8 @@ import math
 from decimal import Decimal
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
+from financas.services.entrada import editar_entrada
+from financas.services.gasto import editar_gasto
 from whatsapp.models import SessaoConversa
 from whatsapp.services.handlers_crud import (
     ITENS_POR_PAGINA,
@@ -248,14 +250,12 @@ def _aplicar_edicao_gasto(sessao: SessaoConversa) -> str:
         return "❌ Gasto não encontrado.\n\n" + MENU_TEXTO
 
     if campo == "valor":
-        gasto.valor = Decimal(sessao.dados_temporarios["novo_valor"])
-        gasto.save()
+        editar_gasto(gasto, valor=Decimal(sessao.dados_temporarios["novo_valor"]))
     elif campo == "categoria":
         cat = Categoria.objects.get(
             pk=sessao.dados_temporarios["nova_categoria_id"]
         )
-        gasto.categoria = cat
-        gasto.save()
+        editar_gasto(gasto, categoria=cat)
 
     sessao.estado = "listando_gastos"
     sessao.dados_temporarios = {"pagina": pagina}
@@ -444,12 +444,10 @@ def _aplicar_edicao_entrada(sessao: SessaoConversa) -> str:
         return "❌ Entrada não encontrada.\n\n" + MENU_TEXTO
 
     if campo == "valor":
-        entrada.valor = Decimal(sessao.dados_temporarios["novo_valor"])
-        entrada.save()
+        editar_entrada(entrada, valor=Decimal(sessao.dados_temporarios["novo_valor"]))
     elif campo == "fonte":
         fonte = Fonte.objects.get(pk=sessao.dados_temporarios["nova_fonte_id"])
-        entrada.fonte = fonte
-        entrada.save()
+        editar_entrada(entrada, fonte=fonte)
 
     sessao.estado = "listando_entradas"
     sessao.dados_temporarios = {"pagina": pagina}
