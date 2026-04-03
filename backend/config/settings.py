@@ -235,6 +235,9 @@ WAHA_API_KEY = env("WAHA_API_KEY", default="")
 WAHA_GROUP_ID = env("WAHA_GROUP_ID", default="")
 WAHA_SESSION = env("WAHA_SESSION", default="default")
 WAHA_OWNER_USERNAME = env("WAHA_OWNER_USERNAME", default="")
+# Token secreto enviado pelo WAHA no header X-Webhook-Secret.
+# Se vazio, o webhook aceita qualquer requisição (modo dev).
+WAHA_WEBHOOK_SECRET = env("WAHA_WEBHOOK_SECRET", default="")
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 

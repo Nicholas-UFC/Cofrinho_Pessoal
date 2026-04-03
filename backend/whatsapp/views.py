@@ -16,6 +16,17 @@ _IGNORADO = JsonResponse({"status": "ignorado"})
 _MAX_BODY_BYTES = 2 * 1024 * 1024
 
 
+def _token_valido(request: HttpRequest) -> bool:
+    """Valida o token secreto enviado pelo WAHA no header X-Webhook-Secret.
+
+    Se WAHA_WEBHOOK_SECRET não estiver configurado, aceita tudo (modo dev).
+    """
+    segredo = getattr(settings, "WAHA_WEBHOOK_SECRET", "")
+    if not segredo:
+        return True
+    return request.headers.get("X-Webhook-Secret", "") == segredo
+
+
 def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:
     """Retorna o corpo da mensagem se deve ser processada, ou None."""
     if dados.get("event") not in ("message", "message.any"):
@@ -32,6 +43,9 @@ def _extrair_mensagem(dados: dict, grupo_esperado: str) -> str | None:
 @csrf_exempt
 @require_POST
 def webhook(request: HttpRequest) -> JsonResponse:
+    if not _token_valido(request):
+        return JsonResponse({"status": "ignorado"}, status=403)
+
     tamanho = int(request.META.get("CONTENT_LENGTH") or 0)
     if tamanho > _MAX_BODY_BYTES:
         return _IGNORADO
