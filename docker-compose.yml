@@ -33,6 +33,7 @@ services:
       WAHA_GROUP_ID: ${WAHA_GROUP_ID}
       WAHA_SESSION: ${WAHA_SESSION}
       WAHA_OWNER_USERNAME: ${WAHA_OWNER_USERNAME}
+      WAHA_WEBHOOK_SECRET: ${WAHA_WEBHOOK_SECRET:-}
     ports:
       - "8000:8000"
     depends_on:
