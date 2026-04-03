@@ -11,47 +11,48 @@ O formato segue [Versionamento Semântico](https://semver.org/): `MAJOR.MINOR.PA
 
 ## [1.9.0] — 2026-04-03 — `fix/waha-noweb-webhook`
 
-### Removido
+### 🔥 refactor: remove services.py legado substituído pelo pacote services/
+- Removidos: `backend/whatsapp/services.py`
 
-- **`backend/whatsapp/services.py`**: arquivo legado de 511 linhas substituído pelo
-  pacote `backend/whatsapp/services/` (já existente)
-- Validação de API key e filtro `fromMe=True` no webhook — WAHA NOWEB não envia o
-  header `X-Api-Key` e não dispara eventos para mensagens com `fromMe=True` via celular
-  - Modificados: `backend/whatsapp/views.py`
+### 🐛 fix: remove validação de API key e filtro fromMe do webhook
+> WAHA NOWEB não envia o header X-Api-Key e não dispara eventos para mensagens com fromMe=True enviadas pelo celular.
+- Modificados: `backend/whatsapp/views.py`
 
-### Corrigido
+### 🐳 docker: ativa NOWEB store e configura headers de webhook
+- Modificados: `docker-compose.yml`
 
-- **23 erros de linting ruff** em arquivos não re-verificados desde que as regras foram ativadas:
-  - `ANN`: type hints em `backend/config/urls.py` e `backend/financas/autenticacao.py`
-  - `PLC0415`: imports movidos para o topo em `backend/financas/tests/test_queries.py`,
-    `test_view_idempotencia.py`, `test_view_ordenacao.py`, `test_auditoria_integracao.py`
-  - `SIM105`: `try/except/pass` → `contextlib.suppress` em `backend/whatsapp/services/handlers_exclusao.py`
-  - `PLR0911`: helpers extraídos em `handlers_edicao.py` (`_escolher_campo_gasto/entrada`,
-    `_selecionar_categoria_gasto/fonte_entrada`), `handlers_listagem.py` (`_paginar_gastos/entradas`)
-    e `processador.py` (`_processar_resumo`, dict `_ESTADO_POR_OPCAO`)
-- **Testes desatualizados** pelo commit de NOWEB:
-  - `test_webhook_ignora_from_me_false` → `test_webhook_processa_from_me_false` (assert_called_once)
-  - `test_webhook_autenticacao.py`: 2 testes que esperavam `403` agora esperam `200`
-  - Modificados: `backend/whatsapp/tests/test_webhook.py`, `test_webhook_autenticacao.py`
+### 📝 docs: atualiza README e MkDocs com CRUD de gastos e entradas via WhatsApp
+- Modificados: `README.md`, `docs/whatsapp/bot.md`
 
-### Adicionado
+### 📝 docs: adiciona regra de atualização do CHANGELOG antes de todo merge
+- Modificados: `CLAUDE.md`
 
-- **Docker**: `WAHA_NOWEB_STORE_ENABLED=true` e `WHATSAPP_HOOK_HEADERS` no `docker-compose.yml`
-- **CLAUDE.md**: regra 8 — obrigatoriedade de atualizar `CHANGELOG.md` antes de todo merge
-- **`.gitignore`**: entrada para `cofrinho_contexto.txt`
+### 🧹 style: formata código com ruff
+> Reformatação automática em 42 arquivos Python. Nenhuma lógica alterada.
+- Modificados: `backend/config/settings.py`, `backend/financas/models.py`, `backend/financas/validators.py`, `backend/financas/views.py`, `backend/whatsapp/models.py`, `backend/whatsapp/services/__init__.py`, `backend/whatsapp/services/cliente_waha.py`, `backend/whatsapp/services/handlers_crud.py`, `backend/whatsapp/services/handlers_gasto.py`, `backend/whatsapp/services/utils.py` e 32 arquivos de testes
 
-### Documentação
+### 🐛 fix: corrige 23 erros de linting reportados pelo ruff
+> Erros em arquivos não re-verificados desde que as regras foram ativadas (pre-commit só checa staged files).
+- `ANN`: type hints em `backend/config/urls.py` e `backend/financas/autenticacao.py`
+- `PLC0415`: imports movidos para o topo em `backend/financas/tests/test_queries.py`, `test_view_idempotencia.py`, `test_view_ordenacao.py`, `test_auditoria_integracao.py`
+- `SIM105`: `try/except/pass` → `contextlib.suppress` em `backend/whatsapp/services/handlers_exclusao.py`
+- `PLR0911`: helpers extraídos em `handlers_edicao.py`, `handlers_listagem.py` e `processador.py`
+- Modificados: `backend/config/urls.py`, `backend/financas/autenticacao.py`, `backend/financas/tests/test_auditoria_integracao.py`, `test_queries.py`, `test_view_idempotencia.py`, `test_view_ordenacao.py`, `backend/whatsapp/services/handlers_edicao.py`, `handlers_exclusao.py`, `handlers_listagem.py`, `processador.py`
 
-- `docs/whatsapp/bot.md`: seções de gerenciamento (editar, excluir, listar) documentadas
-- `docs/frontend.md`: stack corrigida (Axios → fetch nativo); seção Autenticação corrigida
-  (localStorage+Bearer header → cookies httpOnly+credentials:include)
+### ✅ test: atualiza testes para comportamento atual do webhook
+> Dois testes verificavam comportamentos removidos no commit de NOWEB e não foram atualizados na época.
+- `test_webhook_ignora_from_me_false` → `test_webhook_processa_from_me_false`: `fromMe=False` agora é processado
+- `test_webhook_autenticacao.py`: 2 testes que esperavam `403` atualizados para `200`
+- Modificados: `backend/whatsapp/tests/test_webhook.py`, `backend/whatsapp/tests/test_webhook_autenticacao.py`
+
+### 📝 docs: atualiza contagens de testes e descrição do bot
+- Modificados: `README.md`, `docs/frontend.md`, `docs/index.md`
+
+### 📝 docs: corrige documentação de autenticação (cookies httpOnly, fetch, URL logout)
+- `docs/frontend.md`: stack corrigida (Axios → fetch nativo); seção Autenticação corrigida (localStorage+Bearer → cookies httpOnly+credentials:include)
 - `docs/api/autenticacao.md`: URL do logout corrigida (`/api/logout/` → `/api/token/logout/`)
-- `docs/index.md`, `docs/frontend.md`, `README.md`: contagens de testes atualizadas
-  (539 backend, 97% cobertura; 217 frontend)
-
-### Estilo
-
-- Reformatação automática com `ruff format` em 42 arquivos Python (mudanças cosméticas)
+- `.gitignore`: entrada para `cofrinho_contexto.txt`
+- Modificados: `.gitignore`, `docs/api/autenticacao.md`, `docs/frontend.md`
 
 ---
 
