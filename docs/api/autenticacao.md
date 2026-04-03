@@ -60,7 +60,7 @@ POST /api/token/refresh/
 ## Logout
 
 ```http
-POST /api/logout/
+POST /api/token/logout/
 ```
 
 O servidor blacklista o `refresh` token e limpa ambos os cookies. Após o logout,
