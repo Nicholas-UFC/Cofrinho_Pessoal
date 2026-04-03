@@ -75,9 +75,7 @@ def test_e1_abre_tela_campo(usuario: User, gasto: Gasto) -> None:
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_indice_invalido_retorna_erro(
-    usuario: User, gasto: Gasto
-) -> None:
+def test_indice_invalido_retorna_erro(usuario: User, gasto: Gasto) -> None:
     _abrir_lista()
     resposta = processar_mensagem(CHAT_ID, "e99")
     assert "inválido" in resposta.lower()
@@ -205,7 +203,7 @@ def test_nova_categoria_abre_confirmacao(
     # Categorias ordenadas por nome: Alimentação(1), Transporte(2)
     resposta = processar_mensagem(CHAT_ID, "2")
     assert "Alimentação" in resposta  # categoria antiga
-    assert "Transporte" in resposta   # categoria nova
+    assert "Transporte" in resposta  # categoria nova
     assert "Confirma" in resposta
 
 
@@ -247,9 +245,7 @@ def test_v_na_confirmacao_volta_para_campo(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_v_no_campo_volta_para_lista(
-    usuario: User, gasto: Gasto
-) -> None:
+def test_v_no_campo_volta_para_lista(usuario: User, gasto: Gasto) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     resposta = processar_mensagem(CHAT_ID, "v")
@@ -288,9 +284,7 @@ def test_zero_no_valor_vai_ao_menu(usuario: User, gasto: Gasto) -> None:
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_atualizado_em_muda_apos_edicao(
-    usuario: User, gasto: Gasto
-) -> None:
+def test_atualizado_em_muda_apos_edicao(usuario: User, gasto: Gasto) -> None:
     antes = gasto.atualizado_em
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")

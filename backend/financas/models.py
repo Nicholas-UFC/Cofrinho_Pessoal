@@ -240,9 +240,7 @@ class LogAuditoria(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     # Hash SHA-256 dos campos imutáveis — OWASP prática 130.
     # Permite detectar adulteração direta no banco de dados.
-    hash_integridade = models.CharField(
-        max_length=64, blank=True, default=""
-    )
+    hash_integridade = models.CharField(max_length=64, blank=True, default="")
 
     class Meta:
         ordering: ClassVar = ["-criado_em"]

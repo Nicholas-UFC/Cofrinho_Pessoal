@@ -1,4 +1,3 @@
-from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 from decimal import Decimal
 
@@ -7,6 +6,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from financas.models import Entrada, Fonte
 

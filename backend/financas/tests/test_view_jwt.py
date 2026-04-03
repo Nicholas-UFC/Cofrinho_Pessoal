@@ -28,18 +28,12 @@ def user(db: None) -> User:
 
 @pytest.mark.django_db
 class TestTokenInvalido:
-    def test_token_malformado_retorna_401(
-        self, client: APIClient
-    ) -> None:
-        client.credentials(
-            HTTP_AUTHORIZATION="Bearer token_invalido_xyz"
-        )
+    def test_token_malformado_retorna_401(self, client: APIClient) -> None:
+        client.credentials(HTTP_AUTHORIZATION="Bearer token_invalido_xyz")
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_bearer_vazio_retorna_401(
-        self, client: APIClient
-    ) -> None:
+    def test_bearer_vazio_retorna_401(self, client: APIClient) -> None:
         client.credentials(HTTP_AUTHORIZATION="Bearer ")
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -62,9 +56,7 @@ class TestTokenExpirado:
         # Cria token válido e retrocede o exp 10 segundos no passado.
         token = AccessToken.for_user(user)
         token.payload["exp"] = int(time.time()) - 10
-        client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {token!s}"
-        )
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {token!s}")
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -92,16 +84,12 @@ class TestTokenRefresh:
         response = client.get(reverse("gasto-list"))
         assert response.status_code == status.HTTP_200_OK
 
-    def test_refresh_invalido_retorna_401(
-        self, client: APIClient
-    ) -> None:
+    def test_refresh_invalido_retorna_401(self, client: APIClient) -> None:
         client.cookies["refresh"] = "refresh_invalido_xyz"
         response = client.post("/api/token/refresh/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_refresh_ausente_retorna_401(
-        self, client: APIClient
-    ) -> None:
+    def test_refresh_ausente_retorna_401(self, client: APIClient) -> None:
         """Sem cookie de refresh, deve retornar 401."""
         response = client.post("/api/token/refresh/")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED

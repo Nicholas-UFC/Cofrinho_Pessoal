@@ -130,9 +130,7 @@ def test_webhook_gera_log_acesso(client: Client) -> None:
     with patch("whatsapp.views.enviar_mensagem"):
         _post_webhook(client, _PAYLOAD_VALIDO)
 
-    log = LogAcesso.objects.filter(
-        endpoint="/api/whatsapp/webhook/"
-    ).first()
+    log = LogAcesso.objects.filter(endpoint="/api/whatsapp/webhook/").first()
     assert log is not None
     assert log.origem == "whatsapp"
     assert log.metodo == "POST"

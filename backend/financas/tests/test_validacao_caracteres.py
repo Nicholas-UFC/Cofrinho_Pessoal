@@ -29,17 +29,13 @@ def client(usuario: User) -> APIClient:
 
 @pytest.fixture
 def categoria(usuario: User, client: APIClient) -> int:
-    resp = client.post(
-        "/api/financas/categorias/", {"nome": "Alimentacao"}
-    )
+    resp = client.post("/api/financas/categorias/", {"nome": "Alimentacao"})
     return resp.data["id"]
 
 
 @pytest.fixture
 def fonte(usuario: User, client: APIClient) -> int:
-    resp = client.post(
-        "/api/financas/fontes/", {"nome": "Salario"}
-    )
+    resp = client.post("/api/financas/fontes/", {"nome": "Salario"})
     return resp.data["id"]
 
 

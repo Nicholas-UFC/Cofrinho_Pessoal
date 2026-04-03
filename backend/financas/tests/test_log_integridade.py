@@ -58,9 +58,7 @@ def test_hash_corresponde_ao_conteudo(usuario: User) -> None:
         sort_keys=True,
         ensure_ascii=True,
     )
-    hash_esperado = hashlib.sha256(
-        conteudo_esperado.encode()
-    ).hexdigest()
+    hash_esperado = hashlib.sha256(conteudo_esperado.encode()).hexdigest()
     assert log.hash_integridade == hash_esperado
 
 
@@ -114,9 +112,7 @@ def test_adulteracao_detectavel(usuario: User) -> None:
     hash_original = log.hash_integridade
 
     # Simula adulteração direta no banco.
-    LogAuditoria.objects.filter(pk=log.pk).update(
-        hash_integridade="0" * 64
-    )
+    LogAuditoria.objects.filter(pk=log.pk).update(hash_integridade="0" * 64)
     log.refresh_from_db()
 
     # O hash salvo difere do recalculado — adulteração detectada.

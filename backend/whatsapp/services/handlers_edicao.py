@@ -27,8 +27,7 @@ _MSG_CAMPO_GASTO = (
     "*v* para voltar ou *0* para sair."
 )
 _MSG_CAMPO_ENTRADA = (
-    "Digite *1* para valor, *2* para fonte, "
-    "*v* para voltar ou *0* para sair."
+    "Digite *1* para valor, *2* para fonte, *v* para voltar ou *0* para sair."
 )
 _MSG_CONFIRMACAO = (
     "Digite *s* para confirmar, *v* para voltar ou *0* para sair."
@@ -127,7 +126,7 @@ def iniciar_edicao_gasto(
     pagina: int,
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = gastos[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = gastos[inicio : inicio + ITENS_POR_PAGINA]
     sufixo = corpo[1:]
     try:
         idx = int(sufixo)
@@ -154,7 +153,7 @@ def iniciar_edicao_entrada(
     pagina: int,
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = entradas[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = entradas[inicio : inicio + ITENS_POR_PAGINA]
     sufixo = corpo[1:]
     try:
         idx = int(sufixo)
@@ -181,20 +180,23 @@ def _processar_gasto_campo(sessao: SessaoConversa, corpo: str) -> str:
     # Quando confirmando_campo está definido, estamos na confirmação.
     if sessao.dados_temporarios.get("confirmando_campo"):
         return _confirmar_edicao_gasto(sessao, corpo)
-
     if corpo == "0":
         _resetar(sessao)
         return MENU_TEXTO
     if corpo == "v":
         return _voltar_lista_gastos(sessao)
-
     gasto_id = sessao.dados_temporarios.get("gasto_id")
     try:
         gasto = Gasto.objects.select_related("categoria").get(pk=gasto_id)
     except Gasto.DoesNotExist:
         _resetar(sessao)
         return "❌ Gasto não encontrado.\n\n" + MENU_TEXTO
+    return _escolher_campo_gasto(sessao, corpo, gasto)
 
+
+def _escolher_campo_gasto(
+    sessao: SessaoConversa, corpo: str, gasto: Gasto
+) -> str:
     if corpo == "1":
         sessao.estado = "editando_gasto_valor"
         sessao.save()
@@ -211,7 +213,6 @@ def _processar_gasto_campo(sessao: SessaoConversa, corpo: str) -> str:
         sessao.estado = "editando_gasto_categoria"
         sessao.save()
         return f"Nova categoria:\n\n{lista}\n\nv voltar · 0 sair"
-
     return _MSG_CAMPO_GASTO
 
 
@@ -290,10 +291,7 @@ def _processar_gasto_valor(sessao: SessaoConversa, corpo: str) -> str:
 
     valor = _parse_valor(corpo)
     if valor is None:
-        return (
-            "⚠️ Valor inválido. (ex: 25,50 ou 1.500,00)\n"
-            "v voltar · 0 sair"
-        )
+        return "⚠️ Valor inválido. (ex: 25,50 ou 1.500,00)\nv voltar · 0 sair"
 
     gasto_id = sessao.dados_temporarios.get("gasto_id")
     try:
@@ -333,10 +331,15 @@ def _processar_gasto_categoria(sessao: SessaoConversa, corpo: str) -> str:
             _resetar(sessao)
             return "❌ Gasto não encontrado.\n\n" + MENU_TEXTO
         return _texto_campo_gasto(gasto)
-
     usuario = _obter_usuario()
     if not usuario:
         return "❌ Usuário não configurado."
+    return _selecionar_categoria_gasto(sessao, corpo, usuario)
+
+
+def _selecionar_categoria_gasto(
+    sessao: SessaoConversa, corpo: str, usuario: object
+) -> str:
     categorias = list(Categoria.objects.filter(usuario=usuario))
     try:
         idx = int(corpo) - 1
@@ -345,7 +348,6 @@ def _processar_gasto_categoria(sessao: SessaoConversa, corpo: str) -> str:
     except ValueError:
         lista = _listar_categorias(usuario)
         return f"⚠️ Opção inválida.\n\n{lista}\n\nv voltar · 0 sair"
-
     nova = categorias[idx]
     gasto_id = sessao.dados_temporarios.get("gasto_id")
     try:
@@ -353,7 +355,6 @@ def _processar_gasto_categoria(sessao: SessaoConversa, corpo: str) -> str:
     except Gasto.DoesNotExist:
         _resetar(sessao)
         return "❌ Gasto não encontrado.\n\n" + MENU_TEXTO
-
     sessao.dados_temporarios["nova_categoria_id"] = nova.pk
     sessao.dados_temporarios["confirmando_campo"] = "categoria"
     sessao.estado = "editando_gasto_campo"
@@ -374,20 +375,23 @@ def _processar_gasto_categoria(sessao: SessaoConversa, corpo: str) -> str:
 def _processar_entrada_campo(sessao: SessaoConversa, corpo: str) -> str:
     if sessao.dados_temporarios.get("confirmando_campo"):
         return _confirmar_edicao_entrada(sessao, corpo)
-
     if corpo == "0":
         _resetar(sessao)
         return MENU_TEXTO
     if corpo == "v":
         return _voltar_lista_entradas(sessao)
-
     entrada_id = sessao.dados_temporarios.get("entrada_id")
     try:
         entrada = Entrada.objects.select_related("fonte").get(pk=entrada_id)
     except Entrada.DoesNotExist:
         _resetar(sessao)
         return "❌ Entrada não encontrada.\n\n" + MENU_TEXTO
+    return _escolher_campo_entrada(sessao, corpo, entrada)
 
+
+def _escolher_campo_entrada(
+    sessao: SessaoConversa, corpo: str, entrada: Entrada
+) -> str:
     if corpo == "1":
         sessao.estado = "editando_entrada_valor"
         sessao.save()
@@ -404,7 +408,6 @@ def _processar_entrada_campo(sessao: SessaoConversa, corpo: str) -> str:
         sessao.estado = "editando_entrada_fonte"
         sessao.save()
         return f"Nova fonte:\n\n{lista}\n\nv voltar · 0 sair"
-
     return _MSG_CAMPO_ENTRADA
 
 
@@ -415,9 +418,7 @@ def _confirmar_edicao_entrada(sessao: SessaoConversa, corpo: str) -> str:
     if corpo == "v":
         entrada_id = sessao.dados_temporarios.get("entrada_id")
         pagina = sessao.dados_temporarios.get("pagina", 1)
-        sessao.dados_temporarios = {
-            "entrada_id": entrada_id, "pagina": pagina
-        }
+        sessao.dados_temporarios = {"entrada_id": entrada_id, "pagina": pagina}
         sessao.save()
         try:
             entrada = Entrada.objects.select_related("fonte").get(
@@ -446,9 +447,7 @@ def _aplicar_edicao_entrada(sessao: SessaoConversa) -> str:
         entrada.valor = Decimal(sessao.dados_temporarios["novo_valor"])
         entrada.save()
     elif campo == "fonte":
-        fonte = Fonte.objects.get(
-            pk=sessao.dados_temporarios["nova_fonte_id"]
-        )
+        fonte = Fonte.objects.get(pk=sessao.dados_temporarios["nova_fonte_id"])
         entrada.fonte = fonte
         entrada.save()
 
@@ -488,10 +487,7 @@ def _processar_entrada_valor(sessao: SessaoConversa, corpo: str) -> str:
 
     valor = _parse_valor(corpo)
     if valor is None:
-        return (
-            "⚠️ Valor inválido. (ex: 3.000,00)\n"
-            "v voltar · 0 sair"
-        )
+        return "⚠️ Valor inválido. (ex: 3.000,00)\nv voltar · 0 sair"
 
     entrada_id = sessao.dados_temporarios.get("entrada_id")
     try:
@@ -533,10 +529,15 @@ def _processar_entrada_fonte(sessao: SessaoConversa, corpo: str) -> str:
             _resetar(sessao)
             return "❌ Entrada não encontrada.\n\n" + MENU_TEXTO
         return _texto_campo_entrada(entrada)
-
     usuario = _obter_usuario()
     if not usuario:
         return "❌ Usuário não configurado."
+    return _selecionar_fonte_entrada(sessao, corpo, usuario)
+
+
+def _selecionar_fonte_entrada(
+    sessao: SessaoConversa, corpo: str, usuario: object
+) -> str:
     fontes = list(Fonte.objects.filter(usuario=usuario))
     try:
         idx = int(corpo) - 1
@@ -545,7 +546,6 @@ def _processar_entrada_fonte(sessao: SessaoConversa, corpo: str) -> str:
     except ValueError:
         lista = _listar_fontes(usuario)
         return f"⚠️ Opção inválida.\n\n{lista}\n\nv voltar · 0 sair"
-
     nova = fontes[idx]
     entrada_id = sessao.dados_temporarios.get("entrada_id")
     try:
@@ -553,7 +553,6 @@ def _processar_entrada_fonte(sessao: SessaoConversa, corpo: str) -> str:
     except Entrada.DoesNotExist:
         _resetar(sessao)
         return "❌ Entrada não encontrada.\n\n" + MENU_TEXTO
-
     sessao.dados_temporarios["nova_fonte_id"] = nova.pk
     sessao.dados_temporarios["confirmando_campo"] = "fonte"
     sessao.estado = "editando_entrada_campo"

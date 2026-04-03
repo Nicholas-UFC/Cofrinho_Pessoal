@@ -105,9 +105,7 @@ def sessao(db: None) -> SessaoConversa:
 
 @pytest.mark.django_db
 class TestListarCategorias:
-    def test_sem_categorias_retorna_string_vazia(
-        self, user: User
-    ) -> None:
+    def test_sem_categorias_retorna_string_vazia(self, user: User) -> None:
         assert _listar_categorias(user) == ""
 
     def test_formato_numerado(self, user: User) -> None:
@@ -177,16 +175,12 @@ class TestListarFontes:
 
 @pytest.mark.django_db
 class TestSemCadastro:
-    def test_reseta_estado_para_menu(
-        self, sessao: SessaoConversa
-    ) -> None:
+    def test_reseta_estado_para_menu(self, sessao: SessaoConversa) -> None:
         _sem_cadastro(sessao, "categoria")
         sessao.refresh_from_db()
         assert sessao.estado == "menu"
 
-    def test_limpa_dados_temporarios(
-        self, sessao: SessaoConversa
-    ) -> None:
+    def test_limpa_dados_temporarios(self, sessao: SessaoConversa) -> None:
         _sem_cadastro(sessao, "categoria")
         sessao.refresh_from_db()
         assert sessao.dados_temporarios == {}
@@ -197,15 +191,11 @@ class TestSemCadastro:
         msg = _sem_cadastro(sessao, "categoria")
         assert "categoria" in msg
 
-    def test_mensagem_contem_tipo_fonte(
-        self, sessao: SessaoConversa
-    ) -> None:
+    def test_mensagem_contem_tipo_fonte(self, sessao: SessaoConversa) -> None:
         msg = _sem_cadastro(sessao, "fonte")
         assert "fonte" in msg
 
-    def test_mensagem_orienta_usar_app(
-        self, sessao: SessaoConversa
-    ) -> None:
+    def test_mensagem_orienta_usar_app(self, sessao: SessaoConversa) -> None:
         msg = _sem_cadastro(sessao, "categoria")
         assert "app" in msg.lower()
 
@@ -227,9 +217,7 @@ class TestObterResumo:
         assert mes_ano in resultado
 
     def test_calcula_total_gastos(self, user: User) -> None:
-        categoria = Categoria.objects.create(
-            nome="Alimentação", usuario=user
-        )
+        categoria = Categoria.objects.create(nome="Alimentação", usuario=user)
         Gasto.objects.create(
             descricao="Mercado",
             valor=Decimal("100.00"),
@@ -253,9 +241,7 @@ class TestObterResumo:
         assert "500.00" in resultado
 
     def test_calcula_saldo_correto(self, user: User) -> None:
-        categoria = Categoria.objects.create(
-            nome="Alimentação", usuario=user
-        )
+        categoria = Categoria.objects.create(nome="Alimentação", usuario=user)
         fonte = Fonte.objects.create(nome="Salário", usuario=user)
         Gasto.objects.create(
             descricao="Mercado",

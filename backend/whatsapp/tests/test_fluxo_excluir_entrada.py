@@ -72,9 +72,7 @@ def test_confirmacao_exibe_criado_e_editado(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_indice_invalido_retorna_erro(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_indice_invalido_retorna_erro(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     resposta = processar_mensagem(CHAT_ID, "x99")
     assert "inválido" in resposta.lower()
@@ -120,9 +118,7 @@ def test_v_volta_sem_excluir(usuario: User, entrada: Entrada) -> None:
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_zero_vai_ao_menu_sem_excluir(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_zero_vai_ao_menu_sem_excluir(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "x1")
     resposta = processar_mensagem(CHAT_ID, "0")
@@ -145,9 +141,7 @@ def test_normalizacao_x_maiusculo(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_exclusao_gera_log_auditoria(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_exclusao_gera_log_auditoria(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "x1")
     processar_mensagem(CHAT_ID, "s")
@@ -158,16 +152,20 @@ def test_exclusao_gera_log_auditoria(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_lista_atualiza_apos_exclusao(
-    usuario: User, fonte: Fonte
-) -> None:
+def test_lista_atualiza_apos_exclusao(usuario: User, fonte: Fonte) -> None:
     e1 = Entrada.objects.create(
-        usuario=usuario, descricao="A", valor=Decimal("1000.00"),
-        fonte=fonte, data=date(2026, 4, 2),
+        usuario=usuario,
+        descricao="A",
+        valor=Decimal("1000.00"),
+        fonte=fonte,
+        data=date(2026, 4, 2),
     )
     e2 = Entrada.objects.create(
-        usuario=usuario, descricao="B", valor=Decimal("2000.00"),
-        fonte=fonte, data=date(2026, 4, 1),
+        usuario=usuario,
+        descricao="B",
+        valor=Decimal("2000.00"),
+        fonte=fonte,
+        data=date(2026, 4, 1),
     )
     _abrir_lista()
     processar_mensagem(CHAT_ID, "x1")  # exclui e1 (mais recente)

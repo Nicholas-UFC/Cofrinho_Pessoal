@@ -98,9 +98,7 @@ def test_lista_vazia_retorna_mensagem_e_volta_ao_menu(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_lista_exibe_5_por_pagina(
-    usuario: User, categoria: Categoria
-) -> None:
+def test_lista_exibe_5_por_pagina(usuario: User, categoria: Categoria) -> None:
     _criar_gastos(usuario, categoria, 7)
     resposta = processar_mensagem(CHAT_ID, "4")
     # Página 1 deve ter exatamente 5 itens numerados
@@ -126,9 +124,7 @@ def test_lista_exibe_numero_de_paginas(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_proxima_pagina_avanca(
-    usuario: User, categoria: Categoria
-) -> None:
+def test_proxima_pagina_avanca(usuario: User, categoria: Categoria) -> None:
     _criar_gastos(usuario, categoria, 7)
     processar_mensagem(CHAT_ID, "4")
     resposta = processar_mensagem(CHAT_ID, "p")
@@ -141,9 +137,7 @@ def test_proxima_pagina_avanca(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_pagina_anterior_volta(
-    usuario: User, categoria: Categoria
-) -> None:
+def test_pagina_anterior_volta(usuario: User, categoria: Categoria) -> None:
     _criar_gastos(usuario, categoria, 7)
     processar_mensagem(CHAT_ID, "4")
     processar_mensagem(CHAT_ID, "p")
@@ -184,9 +178,7 @@ def test_proxima_na_ultima_pagina_avisa(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_zero_sai_para_menu(
-    usuario: User, categoria: Categoria
-) -> None:
+def test_zero_sai_para_menu(usuario: User, categoria: Categoria) -> None:
     _criar_gastos(usuario, categoria, 1)
     processar_mensagem(CHAT_ID, "4")
     resposta = processar_mensagem(CHAT_ID, "0")

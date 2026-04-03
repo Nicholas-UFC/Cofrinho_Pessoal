@@ -141,9 +141,7 @@ def test_gasto_via_whatsapp_gera_log_auditoria(
     processar_mensagem(CHAT_ID, "1")
     processar_mensagem(CHAT_ID, "s")
 
-    assert LogAuditoria.objects.filter(
-        modelo="Gasto", acao="criado"
-    ).exists()
+    assert LogAuditoria.objects.filter(modelo="Gasto", acao="criado").exists()
 
 
 @pytest.mark.django_db

@@ -5,6 +5,7 @@ Expõe:
   abrir_lista_gastos / abrir_lista_entradas — chamados pelo menu (4/5)
   processar_estado_crud — chamado pelo dispatcher para estados de CRUD
 """
+
 import math
 
 from financas.models import Entrada, Gasto
@@ -22,16 +23,15 @@ ITENS_POR_PAGINA = 5
 def fmt_valor(valor) -> str:  # noqa: ANN001
     """Converte Decimal para formato BR: 1.500,00."""
     return (
-        f"{valor:,.2f}"
-        .replace(",", "X")
-        .replace(".", ",")
-        .replace("X", ".")
+        f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     )
 
 
 def fmt_item_gasto(idx: int, gasto: Gasto) -> str:
     data = gasto.data.strftime("%d/%m")
-    return f"{idx}. R$ {fmt_valor(gasto.valor)} | {gasto.categoria.nome} | {data}"
+    return (
+        f"{idx}. R$ {fmt_valor(gasto.valor)} | {gasto.categoria.nome} | {data}"
+    )
 
 
 def fmt_item_entrada(idx: int, entrada: Entrada) -> str:
@@ -55,7 +55,7 @@ def montar_lista_gastos(
     gastos: list[Gasto], pagina: int, total_paginas: int
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = gastos[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = gastos[inicio : inicio + ITENS_POR_PAGINA]
     linhas = [fmt_item_gasto(i + 1, g) for i, g in enumerate(fatia)]
     return (
         f"*Gastos — pág {pagina}/{total_paginas}*\n"
@@ -69,7 +69,7 @@ def montar_lista_entradas(
     entradas: list[Entrada], pagina: int, total_paginas: int
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = entradas[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = entradas[inicio : inicio + ITENS_POR_PAGINA]
     linhas = [fmt_item_entrada(i + 1, e) for i, e in enumerate(fatia)]
     return (
         f"*Entradas — pág {pagina}/{total_paginas}*\n"
@@ -137,9 +137,7 @@ def abrir_lista_entradas(sessao: SessaoConversa) -> str:
     sessao.estado = "listando_entradas"
     sessao.dados_temporarios = {"pagina": 1}
     sessao.save()
-    return montar_lista_entradas(
-        entradas, 1, total_paginas_entradas(entradas)
-    )
+    return montar_lista_entradas(entradas, 1, total_paginas_entradas(entradas))
 
 
 # ---------------------------------------------------------------------------

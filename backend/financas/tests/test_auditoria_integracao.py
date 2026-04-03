@@ -4,6 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from financas.models import Categoria, Fonte, Gasto, LogAcesso, LogAuditoria
 
@@ -61,8 +62,6 @@ def fonte(user: User) -> Fonte:
 
 
 def _autenticar(api_client: APIClient, user: User) -> None:
-    from rest_framework_simplejwt.tokens import RefreshToken
-
     token = RefreshToken.for_user(user)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
 

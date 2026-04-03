@@ -130,7 +130,14 @@ Baseado no livro Clean Code de Robert C. Martin. Estas regras se aplicam a todo 
 
 Ao editar qualquer arquivo, corrija pequenas sujeiras que estiver vendo (nomes ruins, funcoes longas, codigo duplicado) — mesmo que nao sejam o foco da tarefa.
 
-## 8. Nomenclatura Consistente em Portugues
+## 8. Changelog (Antes de Todo Merge)
+
+- Antes de fazer merge de qualquer branch na `main`, atualizar o `CHANGELOG.md`.
+- Adicionar uma nova secao com a versao correta (seguindo Versionamento Semantico).
+- Listar todos os commits da branch com os arquivos novos, modificados e removidos.
+- O commit do changelog deve ser feito na propria branch, antes do merge.
+
+## 9. Nomenclatura Consistente em Portugues
 
 Todo codigo novo deve usar **portugues** para nomear variaveis, funcoes, classes, metodos e arquivos — com excecao dos casos abaixo.
 

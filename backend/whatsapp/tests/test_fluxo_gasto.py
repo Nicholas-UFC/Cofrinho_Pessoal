@@ -56,14 +56,17 @@ def categoria(usuario: User) -> Categoria:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("valor_digitado,valor_esperado", [
-    ("25, 50",          Decimal("25.50")),   # espaço após vírgula
-    ("25 , 50",         Decimal("25.50")),   # espaços ao redor da vírgula
-    ("25 .000",         Decimal("25000.00")), # espaço antes do ponto
-    ("25. 000",         Decimal("25000.00")), # espaço após o ponto
-    ("5 . 000 , 50",    Decimal("5000.50")),  # espaços em todo lugar
-    ("  25,50  ",       Decimal("25.50")),    # espaços nas bordas
-])
+@pytest.mark.parametrize(
+    "valor_digitado,valor_esperado",
+    [
+        ("25, 50", Decimal("25.50")),  # espaço após vírgula
+        ("25 , 50", Decimal("25.50")),  # espaços ao redor da vírgula
+        ("25 .000", Decimal("25000.00")),  # espaço antes do ponto
+        ("25. 000", Decimal("25000.00")),  # espaço após o ponto
+        ("5 . 000 , 50", Decimal("5000.50")),  # espaços em todo lugar
+        ("  25,50  ", Decimal("25.50")),  # espaços nas bordas
+    ],
+)
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
 def test_valor_com_espacos_e_aceito(

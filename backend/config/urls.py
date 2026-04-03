@@ -1,3 +1,4 @@
+import contextlib
 import json
 
 from django.conf import settings
@@ -7,12 +8,14 @@ from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from financas.autenticacao import CookieJWTAuthentication
@@ -51,16 +54,18 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
     serializer_class = CustomTokenObtainPairSerializer
 
-    def post(self, request, *args, **kwargs):  # type: ignore[override]
+    def post(  # type: ignore[override]
+        self,
+        request: Request,
+        *args: object,
+        **kwargs: object,
+    ) -> JsonResponse | Response:
         resposta_original = super().post(request, *args, **kwargs)
-        if resposta_original.status_code != 200:
+        if resposta_original.status_code != status.HTTP_200_OK:
             return resposta_original
 
         access = resposta_original.data.get("access", "")
         refresh = resposta_original.data.get("refresh", "")
-
-        from rest_framework_simplejwt.tokens import AccessToken
-
         payload = AccessToken(access)
         response = JsonResponse(
             {
@@ -74,7 +79,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 # Handlers genéricos de erro — OWASP práticas 107-109.
 def handler404(  # type: ignore[misc]
-    request: HttpRequest, exception: Exception  # noqa: ARG001
+    request: HttpRequest,  # noqa: ARG001
+    exception: Exception,  # noqa: ARG001
 ) -> JsonResponse:
     return JsonResponse({"erro": "Recurso não encontrado."}, status=404)
 
@@ -138,9 +144,7 @@ def renovar_token_cookie(request: HttpRequest) -> JsonResponse:
 def logout(request: HttpRequest) -> JsonResponse:
     """Blacklista o refresh token e limpa cookies — OWASP prática 62."""
     if not _autenticar_jwt(request):
-        return JsonResponse(
-            {"erro": "Autenticação necessária."}, status=401
-        )
+        return JsonResponse({"erro": "Autenticação necessária."}, status=401)
 
     refresh_token = _extrair_refresh(request)
     if not refresh_token:
@@ -148,10 +152,9 @@ def logout(request: HttpRequest) -> JsonResponse:
             {"erro": "Token de refresh necessário."}, status=400
         )
 
-    try:
+    # Token já inválido — ainda limpa os cookies.
+    with contextlib.suppress(InvalidToken, TokenError):
         RefreshToken(refresh_token).blacklist()
-    except (InvalidToken, TokenError):
-        pass  # Token já inválido — ainda limpa os cookies.
 
     response = JsonResponse({"status": "logout realizado com sucesso."})
     response.delete_cookie("access")

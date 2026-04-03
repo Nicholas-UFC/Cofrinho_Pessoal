@@ -21,9 +21,6 @@ from whatsapp.services.utils import (
 __all__ = [
     "MENU_TEXTO",
     "PREFIXO_BOT",
-    "enviar_mensagem",
-    "ids_enviados_pelo_bot",
-    "processar_mensagem",
     "_escolher_item",
     "_listar_categorias",
     "_listar_fontes",
@@ -31,4 +28,7 @@ __all__ = [
     "_obter_resumo",
     "_parse_valor",
     "_sem_cadastro",
+    "enviar_mensagem",
+    "ids_enviados_pelo_bot",
+    "processar_mensagem",
 ]

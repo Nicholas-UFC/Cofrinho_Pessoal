@@ -1,3 +1,4 @@
+import contextlib
 import math
 
 from financas.models import Entrada, Gasto
@@ -20,7 +21,7 @@ _MSG_CONFIRMACAO = (
 
 
 def _resolver_indice(corpo: str, prefixo: str, total: int) -> int | None:
-    sufixo = corpo[len(prefixo):]
+    sufixo = corpo[len(prefixo) :]
     try:
         idx = int(sufixo)
     except ValueError:
@@ -40,7 +41,7 @@ def iniciar_exclusao_gasto(
     pagina: int,
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = gastos[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = gastos[inicio : inicio + ITENS_POR_PAGINA]
     idx = _resolver_indice(corpo, "x", len(fatia))
     if idx is None:
         total = math.ceil(len(gastos) / ITENS_POR_PAGINA)
@@ -95,10 +96,8 @@ def _processar_confirmacao_exclusao_gasto(
     if corpo in ("s", "sim"):
         gasto_id = sessao.dados_temporarios.get("gasto_id")
         pagina = sessao.dados_temporarios.get("pagina", 1)
-        try:
+        with contextlib.suppress(Gasto.DoesNotExist):
             Gasto.objects.get(pk=gasto_id).delete()
-        except Gasto.DoesNotExist:
-            pass
         sessao.estado = "listando_gastos"
         sessao.dados_temporarios = {"pagina": pagina}
         sessao.save()
@@ -125,7 +124,7 @@ def iniciar_exclusao_entrada(
     pagina: int,
 ) -> str:
     inicio = (pagina - 1) * ITENS_POR_PAGINA
-    fatia = entradas[inicio: inicio + ITENS_POR_PAGINA]
+    fatia = entradas[inicio : inicio + ITENS_POR_PAGINA]
     idx = _resolver_indice(corpo, "x", len(fatia))
     if idx is None:
         total = math.ceil(len(entradas) / ITENS_POR_PAGINA)
@@ -176,10 +175,8 @@ def _processar_confirmacao_exclusao_entrada(
     if corpo in ("s", "sim"):
         entrada_id = sessao.dados_temporarios.get("entrada_id")
         pagina = sessao.dados_temporarios.get("pagina", 1)
-        try:
+        with contextlib.suppress(Entrada.DoesNotExist):
             Entrada.objects.get(pk=entrada_id).delete()
-        except Entrada.DoesNotExist:
-            pass
         sessao.estado = "listando_entradas"
         sessao.dados_temporarios = {"pagina": pagina}
         sessao.save()

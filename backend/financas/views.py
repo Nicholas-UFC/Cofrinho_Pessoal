@@ -62,9 +62,9 @@ class GastoViewSet(ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         # select_related evita N+1 ao acessar categoria.nome no serializer.
-        return Gasto.objects.filter(
-            usuario=self.request.user
-        ).select_related("categoria")
+        return Gasto.objects.filter(usuario=self.request.user).select_related(
+            "categoria"
+        )
 
     def perform_create(self, serializer: BaseSerializer) -> None:
         serializer.save(usuario=self.request.user)

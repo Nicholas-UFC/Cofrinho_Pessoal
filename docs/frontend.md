@@ -9,21 +9,21 @@ Interface web do Cofrinho Pessoal, construída com React 19 e TypeScript.
 
 ## Stack
 
-| Ferramenta        | Finalidade                              |
-|-------------------|-----------------------------------------|
-| React 19 + Vite   | Framework e bundler                     |
-| TypeScript strict | Tipagem estática                        |
-| Tailwind CSS      | Estilização utilitária                  |
-| React Router v6   | Roteamento client-side                  |
-| Axios             | Requisições HTTP com interceptors JWT   |
-| jwt-decode        | Leitura do payload do token             |
-| Recharts          | Gráficos interativos (barras, linha)    |
-| ESLint + Prettier | Linting e formatação                    |
-| Husky + lint-staged | Pre-commit automático                 |
-| Vitest            | Test runner                             |
-| Testing Library   | Testes de componentes React             |
-| MSW               | Mock de API nos testes                  |
-| jest-axe          | Testes de acessibilidade (axe-core)     |
+| Ferramenta            | Finalidade                                |
+|-----------------------|-------------------------------------------|
+| React 19 + Vite       | Framework e bundler                       |
+| TypeScript strict     | Tipagem estática                          |
+| Tailwind CSS          | Estilização utilitária                    |
+| React Router v6       | Roteamento client-side                    |
+| fetch (nativo)        | Requisições HTTP com credentials: include |
+| jwt-decode            | Leitura do payload do token               |
+| Recharts              | Gráficos interativos (barras, linha)      |
+| ESLint + Prettier     | Linting e formatação                      |
+| Husky + lint-staged   | Pre-commit automático                     |
+| Vitest                | Test runner                               |
+| Testing Library       | Testes de componentes React               |
+| MSW                   | Mock de API nos testes                    |
+| jest-axe              | Testes de acessibilidade (axe-core)       |
 
 ---
 
@@ -82,12 +82,12 @@ O layout adapta-se ao tamanho da tela:
 
 ## Autenticação
 
-O token JWT é armazenado no `localStorage` (`access` e `refresh`).
+Os tokens JWT ficam em **cookies httpOnly** — nunca expostos ao JavaScript.
 
-- Toda requisição recebe o header `Authorization: Bearer <token>` via interceptor do Axios.
-- Em caso de resposta `401`, o Axios tenta renovar o token via `POST /api/token/refresh/`.
-- Se a renovação falhar, os tokens são removidos e o usuário é redirecionado para `/login`.
-- O `ContextoAutenticacao` lê o token ao carregar a página, valida a expiração e restaura a sessão.
+- Todas as requisições usam `fetch` nativo com `credentials: "include"`, enviando os cookies automaticamente — sem header `Authorization`.
+- Em caso de resposta `401`, o cliente tenta renovar o access token via `POST /api/token/refresh/` (também com `credentials: "include"`).
+- Se a renovação falhar, a info do usuário é removida do `localStorage` e o usuário é redirecionado para `/login`.
+- O `ContextoAutenticacao` gerencia o estado de autenticação (`isAuthenticated`, `username`, `isAdmin`) em memória.
 
 ---
 
@@ -113,7 +113,7 @@ pnpm test:watch       # modo watch
 pnpm test:coverage    # com relatório de cobertura
 ```
 
-221 testes organizados em 25 arquivos. Cobertura por área:
+217 testes organizados em 25 arquivos. Cobertura por área:
 
 | Área | O que é testado |
 | --- | --- |

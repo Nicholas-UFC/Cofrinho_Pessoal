@@ -68,9 +68,7 @@ def test_e1_abre_tela_campo(usuario: User, entrada: Entrada) -> None:
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_indice_invalido_retorna_erro(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_indice_invalido_retorna_erro(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     resposta = processar_mensagem(CHAT_ID, "e99")
     assert "inválido" in resposta.lower()
@@ -96,9 +94,7 @@ def test_normalizacao_e_maiusculo(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_opcao_1_pede_novo_valor(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_opcao_1_pede_novo_valor(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     resposta = processar_mensagem(CHAT_ID, "1")
@@ -109,9 +105,7 @@ def test_opcao_1_pede_novo_valor(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_valor_invalido_mantem_estado(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_valor_invalido_mantem_estado(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     processar_mensagem(CHAT_ID, "1")
@@ -123,9 +117,7 @@ def test_valor_invalido_mantem_estado(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_novo_valor_abre_confirmacao(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_novo_valor_abre_confirmacao(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     processar_mensagem(CHAT_ID, "1")
@@ -203,7 +195,7 @@ def test_nova_fonte_abre_confirmacao(
     processar_mensagem(CHAT_ID, "2")
     # Fontes ordenadas por nome: Freelance(1), Salário(2)
     resposta = processar_mensagem(CHAT_ID, "1")
-    assert "Salário" in resposta    # fonte antiga
+    assert "Salário" in resposta  # fonte antiga
     assert "Freelance" in resposta  # fonte nova
     assert "Confirma" in resposta
 
@@ -245,9 +237,7 @@ def test_v_na_confirmacao_volta_para_campo(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_v_no_campo_volta_para_lista(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_v_no_campo_volta_para_lista(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     resposta = processar_mensagem(CHAT_ID, "v")
@@ -258,9 +248,7 @@ def test_v_no_campo_volta_para_lista(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_zero_no_campo_vai_ao_menu(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_zero_no_campo_vai_ao_menu(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     resposta = processar_mensagem(CHAT_ID, "0")
@@ -271,9 +259,7 @@ def test_zero_no_campo_vai_ao_menu(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_zero_no_valor_vai_ao_menu(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_zero_no_valor_vai_ao_menu(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     processar_mensagem(CHAT_ID, "1")
@@ -305,9 +291,7 @@ def test_atualizado_em_muda_apos_edicao(
 
 @pytest.mark.django_db
 @override_settings(WAHA_OWNER_USERNAME=OWNER)
-def test_edicao_gera_log_auditoria(
-    usuario: User, entrada: Entrada
-) -> None:
+def test_edicao_gera_log_auditoria(usuario: User, entrada: Entrada) -> None:
     _abrir_lista()
     processar_mensagem(CHAT_ID, "e1")
     processar_mensagem(CHAT_ID, "1")

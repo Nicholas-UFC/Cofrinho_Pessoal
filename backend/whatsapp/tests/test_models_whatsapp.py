@@ -45,15 +45,11 @@ class TestSessaoConversa:
             SessaoConversa.objects.create(chat_id="unico@g.us")
 
     def test_usuario_pode_ser_nulo(self) -> None:
-        sessao = SessaoConversa.objects.create(
-            chat_id="c@g.us", usuario=None
-        )
+        sessao = SessaoConversa.objects.create(chat_id="c@g.us", usuario=None)
         assert sessao.usuario is None
 
     def test_usuario_pode_ser_vinculado(self, user: User) -> None:
-        sessao = SessaoConversa.objects.create(
-            chat_id="d@g.us", usuario=user
-        )
+        sessao = SessaoConversa.objects.create(chat_id="d@g.us", usuario=user)
         assert sessao.usuario == user
 
     def test_criado_em_preenchido_automaticamente(self) -> None:

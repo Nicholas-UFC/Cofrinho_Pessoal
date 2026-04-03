@@ -130,5 +130,3 @@ def test_bulk_update_registra_campos_alterados(
     log = LogAuditoria.objects.get(modelo="Gasto", acao="bulk_atualizado")
     assert "descricao" in log.detalhes["campos"]
     assert log.detalhes["campos"]["descricao"] == "Novo nome"
-
-

@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from financas.models import Categoria, Entrada, Fonte, Gasto
 
@@ -23,8 +24,6 @@ def user(db: None) -> User:
 
 @pytest.fixture
 def auth_client(user: User) -> APIClient:
-    from rest_framework_simplejwt.tokens import RefreshToken
-
     c = APIClient()
     token = RefreshToken.for_user(user)
     c.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")

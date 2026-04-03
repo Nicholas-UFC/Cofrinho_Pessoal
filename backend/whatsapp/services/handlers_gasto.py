@@ -66,8 +66,7 @@ def processar_valor_gasto(sessao: SessaoConversa, corpo: str) -> str:
     sessao.estado = "aguardando_categoria_gasto"
     sessao.save()
     return (
-        f"Qual a categoria?\n\n{lista}\n\n"
-        "Digite o número ou 0 para cancelar."
+        f"Qual a categoria?\n\n{lista}\n\nDigite o número ou 0 para cancelar."
     )
 
 
