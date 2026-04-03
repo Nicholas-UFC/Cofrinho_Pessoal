@@ -162,7 +162,8 @@ def test_webhook_ignora_tudo_quando_group_id_nao_configurado(
 
 @pytest.mark.django_db
 @override_settings(WAHA_GROUP_ID=GRUPO_ID)
-def test_webhook_ignora_from_me_false(client: Client) -> None:
+def test_webhook_processa_from_me_false(client: Client) -> None:
+    """Mensagem de usuário (fromMe=False) deve ser processada normalmente."""
     dados = {
         **_PAYLOAD_VALIDO,
         "payload": {**_PAYLOAD_VALIDO["payload"], "fromMe": False},
@@ -170,7 +171,7 @@ def test_webhook_ignora_from_me_false(client: Client) -> None:
     with patch("whatsapp.views.enviar_mensagem") as mock_enviar:
         resposta = _post_webhook(client, dados)
     assert resposta.status_code == 200
-    mock_enviar.assert_not_called()
+    mock_enviar.assert_called_once()
 
 
 @pytest.mark.django_db
@@ -208,4 +209,3 @@ def test_webhook_aceita_evento_message_any(client: Client) -> None:
         resposta = _post_webhook(client, dados)
     assert resposta.status_code == 200
     mock_enviar.assert_called_once()
-
